@@ -9,8 +9,10 @@ from rest_framework.schemas import SchemaGenerator
 from rest_framework_swagger.renderers import SwaggerUIRenderer, OpenAPIRenderer
 from wagtail.wagtailcore.models import Page
 from wagtail.wagtailcore.views import serve as serve_page
+from wagtail.wagtaildocs.models import Document
 from wagtail.wagtaildocs.views.serve import serve as serve_doc
 from wagtail.wagtailimages.formats import get_image_formats
+from wagtail.wagtailimages.models import Image
 from wagtail.wagtailimages.views.serve import ServeView, generate_signature
 
 from wagtailnest.utils import get_root_relative_url
@@ -68,6 +70,8 @@ class DocumentServeView(RetrieveAPIView):
     """
     Retrieve a Document
     """
+    queryset = Document.objects.all()
+
     def get(self, request, document_id, document_filename=None):
         return serve_doc(request, document_id, document_filename)
 
@@ -76,5 +80,7 @@ class ImageServeView(RetrieveAPIView):
     """
     Retrieve an Image
     """
+    queryset = Image.objects.all()
+
     def get(self, request, *args):
         return ServeView.as_view()(request, *args)

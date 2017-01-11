@@ -2,18 +2,25 @@
 URLs for the API interfaces.
 """
 from itertools import chain
+from django.conf import settings
 from django.conf.urls import include, url
 from rest_auth import urls as rest_auth_urls
 from rest_auth.registration import urls as rest_auth_registration_urls
 from rest_framework.routers import DefaultRouter
+from rest_framework.settings import import_from_string
+from rest_framework_jwt import views as jwt_views
 from wagtail.utils.apps import get_app_submodules
 from wagtail.api.v2.router import WagtailAPIRouter
 
-from wagtailnest import endpoints
 from wagtailnest.views import get_schema_view
 
 
-v1_router = DefaultRouter(schema_title='Ionata App API')
+def _get_endpoint(endpoint):
+    setting_name = 'API_ENDPOINT_' + endpoint
+    return import_from_string(settings.WAGTAILNEST[setting_name], setting_name)
+
+
+v1_router = DefaultRouter(schema_title=settings.WAGTAILNEST['API_NAME'])
 
 # Add viewsets from apps in the format "routes = [(r'regex', MyViewSet), ...]"
 viewsets = [
@@ -24,15 +31,20 @@ for regex, viewset in chain.from_iterable(viewsets):
     v1_router.register(regex, viewset, base_name=regex)
 
 wt_router = WagtailAPIRouter('wagtailapi')
-wt_router.register_endpoint('pages', endpoints.WTNPagesAPIEndpoint)
-wt_router.register_endpoint('page_revisions', endpoints.WTNPageRevisionsAPIEndpoint)
-wt_router.register_endpoint('images', endpoints.WTNImagesAPIEndpoint)
-wt_router.register_endpoint('documents', endpoints.WTNDocumentsAPIEndpoint)
+wt_router.register_endpoint('pages', _get_endpoint('PAGES'))
+wt_router.register_endpoint('page_revisions', _get_endpoint('PAGE_REVS'))
+wt_router.register_endpoint('images', _get_endpoint('IMAGES'))
+wt_router.register_endpoint('documents', _get_endpoint('DOCS'))
 
 api_v1 = [url(r'', include([
     url(r'', include(v1_router.urls)),
     url(r'', include(wt_router.urls)),
     url(r'^auth/', include(rest_auth_urls)),
     url(r'^auth/registration/', include(rest_auth_registration_urls)),
+    url(r'^auth/token/', include([
+        url(r'obtain/', jwt_views.obtain_jwt_token),
+        url(r'refresh/', jwt_views.refresh_jwt_token),
+        url(r'verify/', jwt_views.verify_jwt_token),
+    ])),
     url(r'^docs/', get_schema_view(title=v1_router.schema_title)),
 ]))]

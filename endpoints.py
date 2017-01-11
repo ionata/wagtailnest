@@ -115,9 +115,7 @@ class WTNPagesAPIEndpoint(PagesAPIEndpoint):
 
     def get_page_for_url(self, request):
         page = self.get_queryset().filter(url_path=get_urlpath(request)).first()
-        if page is None:
-            raise Http404("There is no page with that url")
-        return page.specific
+        return page.specific if page is not None else None
 
     def listing_view(self, request):
         self._object = self.get_page_for_url(request)
