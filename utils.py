@@ -2,7 +2,6 @@ from django.core.urlresolvers import reverse
 from wagtail.wagtailcore.blocks import RichTextBlock
 from wagtail.wagtailcore.models import Site, UserPagePermissionsProxy
 from wagtail.wagtailcore.rich_text import LINK_HANDLERS
-from wagtail.wagtailimages.views.serve import generate_signature
 
 
 def get_site():
@@ -57,6 +56,7 @@ def generate_image_url(image, filter_spec):
     """
     From an Image, get a URL.
     """
+    from wagtail.wagtailimages.views.serve import generate_signature
     signature = generate_signature(image.id, filter_spec)
     url = reverse('wagtailimages_serve', args=(signature, image.id, filter_spec))
     return as_absolute(url)
@@ -72,3 +72,8 @@ def richtext_to_python(value):
     if isinstance(value, str):
         return str(RichTextBlock().to_python(value))
     return value
+
+
+def serialize_video_url(video_url):
+    from wagtailnest.serializers import EmbedSerializer
+    return EmbedSerializer.for_url(video_url)
