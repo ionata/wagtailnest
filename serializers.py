@@ -59,6 +59,29 @@ class UserDetailsSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'username', 'email']
 
 
+class UserPermissionSerializerMixin(serializers.Serializer):
+    permissions = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        fields = [
+            'permissions',
+        ]
+
+    def in_apps(self, permission):
+        """
+        Check if an app has been approved to show up in the session user.
+        Defaults to showing all apps
+        Override with WAGTAILNEST['API_USER_PERMISSION_APPS']
+        """
+        apps = settings.WAGTAILNEST['API_USER_PERMISSION_APPS']
+        if len(apps) == 0:
+            return True
+        return any(permission.split('.')[0] == s for s in apps)
+
+    def get_permissions(self, obj):
+        return sorted({x for x in obj.get_all_permissions() if self.in_apps(x)})
+
+
 class PasswordResetSerializer(serializers.Serializer):
     """Serializer for requesting a password reset e-mail."""
     email = serializers.EmailField()
