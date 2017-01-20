@@ -87,11 +87,15 @@ class PasswordResetSerializer(serializers.Serializer):
     email = serializers.EmailField()
     password_reset_form_class = PasswordResetForm
 
-    def get_email_options(self):
-        """Override this method to change default e-mail options."""
+    def get_email_context(self):
+        """Override this method to change default e-mail context."""
         return {
             'frontend_url': getattr(settings, 'FRONTEND_URL', ''),
         }
+
+    def get_email_options(self):
+        """Override this method to change default e-mail options."""
+        return {}
 
     def validate_email(self, value):
         # Create PasswordResetForm with the serializer
@@ -108,6 +112,7 @@ class PasswordResetSerializer(serializers.Serializer):
             'request': request,
             'email_template_name': 'registration/password_reset_email.txt',
             'html_email_template_name': 'registration/password_reset_email.html',
+            'extra_email_context': self.get_email_context(),
         }
         opts.update(self.get_email_options())
         self.reset_form.save(**opts)
