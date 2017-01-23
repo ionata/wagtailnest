@@ -1,5 +1,11 @@
 from datetime import timedelta
 
+# django.contrib.auth
+ANONYMOUS_USER_ID = -1
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+]
+
 # DRF
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
