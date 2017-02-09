@@ -5,6 +5,7 @@ ANONYMOUS_USER_ID = -1
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
 ]
+AUTH_USER_MODEL = 'minimal_user.User'
 
 # DRF
 REST_FRAMEWORK = {
@@ -26,7 +27,7 @@ SWAGGER_SETTINGS = {
 
 # Auth
 REST_AUTH_SERIALIZERS = {
-    'USER_DETAILS_SERIALIZER': 'wagtailnest.serializers.UserDetailsSerializer',
+    'USER_DETAILS_SERIALIZER': 'minimal_user.serializers.UserDetailsSerializer',
     'PASSWORD_RESET_SERIALIZER': 'wagtailnest.serializers.PasswordResetSerializer',
 }
 REST_USE_JWT = True
@@ -48,6 +49,10 @@ WAGTAIL_USER_CREATION_FORM = 'wagtailnest.forms.CustomUserCreationForm'
 # App
 SESSION_COOKIE_PATH = '/backend/'
 CSRF_COOKIE_PATH = '/backend/'
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+FRONTEND_URL = BASE_URL = 'http://localhost:8000'
+WAGTAIL_SITE_NAME = "RESTful App"
 
 # Wagtailnest settings
 WAGTAILNEST = {
