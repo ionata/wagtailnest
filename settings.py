@@ -51,12 +51,12 @@ SESSION_COOKIE_PATH = '/backend/'
 CSRF_COOKIE_PATH = '/backend/'
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
-FRONTEND_URL = BASE_URL = 'http://localhost:8000'
 WAGTAIL_SITE_NAME = "RESTful App"
 
 # Wagtailnest settings
 WAGTAILNEST = {
-    'API_NAME': 'wagtailnest API',
+    'BASE_URL': 'http://localhost:8000',
+    'FRONTEND_URL':  'http://localhost:8000',
     'API_ENDPOINT_DOCS': 'wagtailnest.endpoints.WTNDocumentsAPIEndpoint',
     'API_ENDPOINT_IMAGES': 'wagtailnest.endpoints.WTNImagesAPIEndpoint',
     'API_ENDPOINT_PAGES': 'wagtailnest.endpoints.WTNPagesAPIEndpoint',

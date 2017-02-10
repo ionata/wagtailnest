@@ -90,7 +90,7 @@ class PasswordResetSerializer(serializers.Serializer):
     def get_email_context(self):
         """Override this method to change default e-mail context."""
         return {
-            'frontend_url': getattr(settings, 'FRONTEND_URL', ''),
+            'frontend_url': settings.WAGTAILNEST.get('FRONTEND_URL', ''),
         }
 
     def get_email_options(self):

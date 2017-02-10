@@ -20,7 +20,7 @@ def _get_endpoint(endpoint):
     return import_from_string(settings.WAGTAILNEST[setting_name], setting_name)
 
 
-v1_router = DefaultRouter(schema_title=settings.WAGTAILNEST['API_NAME'])
+v1_router = DefaultRouter(schema_title=settings.WAGTAIL_SITE_NAME)
 
 # Add viewsets from apps in the format "routes = [(r'regex', MyViewSet), ...]"
 viewsets = [
