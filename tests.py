@@ -59,7 +59,7 @@ class APIModelTestCaseMixin:
     def check_written(self, data, response):
         self._check_written(data, response)
 
-    def _test_request(self, data, user=None, bad_fields=None, method='post', pk=None):
+    def _test_request(self, data=None, user=None, bad_fields=None, method='post', pk=None):
         client = self.get_client(user)
         client_method = getattr(client, method)
         if method == 'post':
@@ -74,7 +74,8 @@ class APIModelTestCaseMixin:
             if response.status_code != good_code:
                 print('Error content: {}'.format(response.content))
             self.assertEqual(response.status_code, good_code)
-            self.check_written(data, response)
+            if method in ['post', 'put', 'patch']:
+                self.check_written(data, response)
         else:
             self.assertEqual(response.status_code, 400)
             self.assertListEqual(bad_fields, list(response.data.keys()))
