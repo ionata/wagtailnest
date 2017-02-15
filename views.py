@@ -6,6 +6,7 @@ from rest_framework.generics import RetrieveAPIView
 from rest_framework.renderers import CoreJSONRenderer
 from rest_framework.response import Response
 from rest_framework.schemas import SchemaGenerator
+from rest_framework.settings import api_settings
 from rest_framework_swagger.renderers import SwaggerUIRenderer, OpenAPIRenderer
 from wagtail.wagtailcore.models import Page
 from wagtail.wagtailcore.views import serve as serve_page
@@ -15,7 +16,7 @@ from wagtail.wagtailimages.formats import get_image_formats
 from wagtail.wagtailimages.models import Image
 from wagtail.wagtailimages.views.serve import ServeView, generate_signature
 
-from wagtailnest.utils import get_root_relative_url
+from wagtailnest.utils import get_root_relative_url, import_setting
 
 
 class DraftRedirectView(RedirectView):
@@ -43,6 +44,8 @@ def get_schema_view(title):
 
 
 class ImageView(RetrieveAPIView):
+    permission_classes = import_setting('IMAGE_PERMISSION_CLASSES', api_settings.DEFAULT_PERMISSION_CLASSES)
+
     @staticmethod
     def _get_image_rendition(request, image_id, profile_name):
         profiles = {x.name: x for x in get_image_formats()}
@@ -62,6 +65,8 @@ class PageServeView(RetrieveAPIView):
     """
     Retrieve a Page
     """
+    permission_classes = import_setting('PAGE_PERMISSION_CLASSES', api_settings.DEFAULT_PERMISSION_CLASSES)
+
     def get(self, request, path):
         return serve_page(request, path)
 
@@ -71,6 +76,7 @@ class DocumentServeView(RetrieveAPIView):
     Retrieve a Document
     """
     queryset = Document.objects.all()
+    permission_classes = import_setting('DOCUMENT_PERMISSION_CLASSES', api_settings.DEFAULT_PERMISSION_CLASSES)
 
     def get(self, request, document_id, document_filename=None):
         return serve_doc(request, document_id, document_filename)
@@ -81,6 +87,7 @@ class ImageServeView(RetrieveAPIView):
     Retrieve an Image
     """
     queryset = Image.objects.all()
+    permission_classes = import_setting('IMAGE_PERMISSION_CLASSES', api_settings.DEFAULT_PERMISSION_CLASSES)
 
     def get(self, request, *args):
         return ServeView.as_view()(request, *args)

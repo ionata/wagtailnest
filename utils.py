@@ -1,4 +1,6 @@
+from django.conf import settings
 from django.core.urlresolvers import reverse
+from rest_framework.settings import perform_import
 from wagtail.wagtailcore.blocks import RichTextBlock
 from wagtail.wagtailcore.models import Site, UserPagePermissionsProxy
 from wagtail.wagtailcore.rich_text import LINK_HANDLERS
@@ -77,3 +79,8 @@ def richtext_to_python(value):
 def serialize_video_url(video_url):
     from wagtailnest.serializers import EmbedSerializer
     return EmbedSerializer.for_url(video_url)
+
+
+def import_setting(name, default=None):
+    value = perform_import(settings.WAGTAILNEST.get(name, None), name)
+    return default if value is None else value
