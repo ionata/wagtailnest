@@ -31,6 +31,11 @@ class APIModelTestCaseMixin:
         fyle.seek(0)
         return fyle
 
+    def check_image(self, image, image_field):
+        image.seek(0)
+        image_field.seek(0)
+        self.assertListEqual(image.readlines(), image_field.readlines())
+
     def get_model(self):
         return self.model
 
@@ -41,6 +46,11 @@ class APIModelTestCaseMixin:
             return False
         return True
 
+    def _get_value(self, field, data):
+        if isinstance(field, models.ForeignKey):
+            return field.related_model.objects.get(pk=data)
+        return field.to_python(data)
+
     def _check_written_field(self, instance, data, field_name, response):
         value = getattr(instance, field_name)
         field = instance._meta.get_field(field_name)
@@ -48,11 +58,6 @@ class APIModelTestCaseMixin:
             self.assertSetEqual(set(value.values_list('pk', flat=True)), set(data))
             return
         self.assertEqual(value, self._get_value(field, data))
-
-    def _get_value(self, field, data):
-        if isinstance(field, models.ForeignKey):
-            return field.related_model.objects.get(pk=data)
-        return field.to_python(data)
 
     def _check_written(self, data, response):
         new = self.get_model().objects.get(id=response.data['id'])
@@ -68,24 +73,42 @@ class APIModelTestCaseMixin:
     def check_written(self, data, response):
         self._check_written(data, response)
 
-    def _test_request(self, data=None, user=None, bad_fields=None, method='post', pk=None):
-        client = self.get_client(user)
-        client_method = getattr(client, method)
+    def _get_code(self, method, code, bad_fields=None):
+        if code is not None:
+            return code
+        if bad_fields is not None:
+            return 400
         if method == 'post':
-            good_code = 201
-        elif method == 'delete':
-            good_code = 204
-        else:
-            good_code = 200
+            return 201
+        if method == 'delete':
+            return 204
+        return 200
+
+    def _test_request(self, data=None, user=None, bad_fields=None, method='post', pk=None, code=None):
         kwargs = {} if pk is None else {'pk': pk}
-        response = client_method(self.get_api_url(**kwargs), data)
-        if bad_fields is None:
-            if response.status_code != good_code:
-                print('Error content: {}'.format(response.content))
-            self.assertEqual(response.status_code, good_code)
-            if method in ['post', 'put', 'patch']:
-                self.check_written(data, response)
-        else:
-            self.assertEqual(response.status_code, 400)
+        client = self.get_client(user)
+        response = getattr(client, method)(self.get_api_url(**kwargs), data)
+        code = self._get_code(method, code, bad_fields)
+        if response.status_code != code:
+            print('Error content: {}'.format(response.content))
+        self.assertEqual(response.status_code, code)
+        if code == 400:  # ValidationError
             self.assertListEqual(bad_fields, list(response.data.keys()))
+        elif 200 <= code <= 300 and method in ['post', 'put', 'patch']:
+                self.check_written(data, response)
         return response
+
+    def _test_post(self, data=None, user=None, bad_fields=None, code=None):
+        return self._test_request(data=data, user=user, bad_fields=bad_fields, method='post', code=code)
+
+    def _test_get(self, pk=None, user=None):
+        return self._test_request(user=user, pk=pk, method='get')
+
+    def _test_patch(self, pk, data=None, user=None, bad_fields=None, code=None):
+        return self._test_request(data=data, user=user, bad_fields=bad_fields, method='patch', code=code)
+
+    def _test_put(self, pk, data=None, user=None, bad_fields=None, code=None):
+        return self._test_request(data=data, user=user, bad_fields=bad_fields, method='put', code=code)
+
+    def _test_delete(self, pk, user=None, code=None):
+        return self._test_request(user=user, pk=pk, method='delete', code=code)
