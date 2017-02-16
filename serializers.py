@@ -1,19 +1,40 @@
 from collections import namedtuple
+import copy
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import PasswordResetForm
 from django.core.exceptions import MultipleObjectsReturned
+from django.db import models
+from enumfields.fields import EnumFieldMixin
 from rest_framework import serializers
 from wagtail.api.v2.serializers import PageSerializer
 from wagtail.wagtailcore.models import PageRevision, Site
 from wagtail.wagtailembeds.embeds import get_embed
 from wagtail.wagtailembeds.models import Embed
 
-from wagtailnest.utils import get_root_relative_url
+from .fields import LocalDateTimeField, RestEnumField
+from .utils import get_root_relative_url
 
 
-class PageRevisionSerializer(serializers.ModelSerializer):
+new_field_mapping = copy.copy(serializers.ModelSerializer.serializer_field_mapping)
+new_field_mapping.update({
+    models.DateTimeField: LocalDateTimeField,
+})
+
+
+class ModelSerializer(serializers.ModelSerializer):
+    serializer_field_mapping = new_field_mapping
+
+    def build_standard_field(self, field_name, model_field):
+        field_class, field_kwargs = super().build_standard_field(field_name, model_field)
+        if isinstance(model_field, EnumFieldMixin):
+            field_class = RestEnumField
+            field_kwargs['enum_type'] = model_field.enum
+        return field_class, field_kwargs
+
+
+class PageRevisionSerializer(ModelSerializer):
     class Meta:
         model = PageRevision
         fields = [
@@ -52,7 +73,7 @@ def get_page_detail_serializer(page, site=None, router=None):
     return endpoint(**endpoint_args).get_serializer(page_queryset)
 
 
-class UserDetailsSerializer(serializers.ModelSerializer):
+class UserDetailsSerializer(ModelSerializer):
     class Meta:
         model = get_user_model()
         fields = ['id', 'username', 'email', 'first_name', 'last_name']
@@ -118,13 +139,13 @@ class PasswordResetSerializer(serializers.Serializer):
         self.reset_form.save(**opts)
 
 
-class SiteSerializer(serializers.ModelSerializer):
+class SiteSerializer(ModelSerializer):
     class Meta:
         model = Site
         exclude = []  # type: List[str]
 
 
-class EmbedSerializer(serializers.ModelSerializer):
+class EmbedSerializer(ModelSerializer):
     class Meta:
         model = Embed
         exclude = []  # type: List[str]

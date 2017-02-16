@@ -1,7 +1,10 @@
+from io import BytesIO
+
 from django.core.exceptions import FieldDoesNotExist
 from django.db import models
 from django.urls import reverse
 from faker import Faker
+from PIL import Image
 from rest_framework.test import APIClient
 
 
@@ -21,6 +24,12 @@ class APIModelTestCaseMixin:
         if user is not None:
             client.force_authenticate(user=user)
         return client
+
+    def get_image(self):
+        fyle = BytesIO(b'')
+        Image.new('RGB', (100, 100)).save(fyle, format='jpeg')
+        fyle.seek(0)
+        return fyle
 
     def get_model(self):
         return self.model
