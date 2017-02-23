@@ -6,6 +6,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import PasswordResetForm
 from django.core.exceptions import MultipleObjectsReturned
 from django.db import models
+from django.utils.http import urlsafe_base64_encode
 from enumfields.fields import EnumFieldMixin
 from rest_framework import serializers
 from wagtail.api.v2.serializers import PageSerializer
@@ -111,6 +112,8 @@ class PasswordResetSerializer(serializers.Serializer):
     def get_email_context(self):
         """Override this method to change default e-mail context."""
         return {
+            'email': self.data['email'],
+            'email_encoded': urlsafe_base64_encode(self.data['email'].encode('utf-8')),
             'frontend_url': settings.WAGTAILNEST.get('FRONTEND_URL', ''),
         }
 
