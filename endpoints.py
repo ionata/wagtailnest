@@ -1,6 +1,6 @@
-from django.http import Http404
 from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
+from rest_framework_filters.backends import DjangoFilterBackend
 from wagtail.api.v2.endpoints import BaseAPIEndpoint, PagesAPIEndpoint
 from wagtail.api.v2.filters import FieldsFilter, OrderingFilter, SearchFilter
 from wagtail.wagtailcore.models import Page, PageRevision
@@ -39,12 +39,49 @@ class WTNPagesAPIEndpoint(PagesAPIEndpoint):
         'root_relative_url',
         'url_path',
     ]
+    filter_class_map = {}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._object = None
 
+    def get_page_type(self):
+        type_name = self.request.GET.get('type', 'wagtailcore.Page')
+        try:
+            models = page_models_from_string(type_name)
+        except (LookupError, ValueError):
+            models = []
+        return models[0] if len(models) == 1 else Page
+
+    @property
+    def filter_class(self):
+        return self.filter_class_map.get(self.get_page_type(), None)
+
+    def check_query_parameters(self, queryset):
+        return  # TODO: Allow only what's on our custom filterset
+        query_parameters = set(self.request.GET.keys())
+
+        # All query paramters must be either a database field or an operation
+        allowed_query_parameters = set(
+            self.get_available_fields(queryset.model, db_fields_only=True)
+        ).union(self.known_query_parameters)
+        unknown_parameters = query_parameters - allowed_query_parameters
+        if unknown_parameters:
+            raise BadRequestError(
+                "query parameter is not an operation or a recognised field: {}".format(
+                    ', '.join(sorted(unknown_parameters))))
+
+    def filter_queryset(self, queryset):
+        """Given a queryset, filter it with whichever filter backend is in use."""
+        filter_backends = list(self.filter_backends)
+        if self.filter_class is not None:
+            filter_backends = [DjangoFilterBackend] + filter_backends
+        for backend in filter_backends:
+            queryset = backend().filter_queryset(self.request, queryset, self)
+        return queryset
+
     def get_queryset(self):
+        """Override to allow non-live pages to be seen for preview/revisions."""
         request = self.request
 
         # Allow pages to be filtered to a specific type
@@ -104,6 +141,7 @@ class WTNPagesAPIEndpoint(PagesAPIEndpoint):
         return authenticated and preview
 
     def detail_view(self, request, pk):
+        """Override to provide revision rendering."""
         instance = self.get_object()
         if self.revision_wanted is not None:
             instance = get_object_or_404(
@@ -118,6 +156,7 @@ class WTNPagesAPIEndpoint(PagesAPIEndpoint):
         return page.specific if page is not None else None
 
     def listing_view(self, request):
+        """Override to provide single instance by url."""
         self._object = self.get_page_for_url(request)
         if self._object is not None:
             self.kwargs.update({'pk': self._object.pk})
