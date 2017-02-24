@@ -4,8 +4,10 @@ import copy
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import PasswordResetForm
+from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import MultipleObjectsReturned
 from django.db import models
+from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from enumfields.fields import EnumFieldMixin
 from rest_framework import serializers
@@ -112,7 +114,6 @@ class PasswordResetSerializer(serializers.Serializer):
     def get_email_context(self):
         """Override this method to change default e-mail context."""
         return {
-            'email': self.data['email'],
             'email_encoded': urlsafe_base64_encode(self.data['email'].encode('utf-8')),
             'frontend_url': settings.WAGTAILNEST.get('FRONTEND_URL', ''),
         }
@@ -140,6 +141,18 @@ class PasswordResetSerializer(serializers.Serializer):
         }
         opts.update(self.get_email_options())
         self.reset_form.save(**opts)
+
+    @classmethod
+    def get_user_email_context(cls, user):
+        """User-relevant context for reset email except"""
+        context = {
+            'email': user.email,
+            'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+            'user': user,
+            'token': default_token_generator.make_token(user),
+        }
+        context.update(cls({'email': user.email}).get_email_context())
+        return context
 
 
 class SiteSerializer(ModelSerializer):
