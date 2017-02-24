@@ -1,13 +1,17 @@
-from wagtail.wagtailusers.forms import UserEditForm, UserCreationForm
+from wagtail.wagtailusers.forms import UserEditForm, UserCreationForm, custom_fields
 
 
-class CustomUserEditForm(UserEditForm):
+class ExtraneousFieldRemovalMixin:
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields.pop('is_superuser')
+        for field in ['first_name', 'last_name', 'is_superuser']:
+            if field not in custom_fields:
+                self.fields.pop(field)
 
 
-class CustomUserCreationForm(UserCreationForm):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields.pop('is_superuser')
+class CustomUserCreationForm(ExtraneousFieldRemovalMixin, UserCreationForm):
+    pass
+
+
+class CustomUserEditForm(ExtraneousFieldRemovalMixin, UserEditForm):
+    pass
