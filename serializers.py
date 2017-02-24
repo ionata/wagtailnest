@@ -15,6 +15,8 @@ from wagtail.api.v2.serializers import PageSerializer
 from wagtail.wagtailcore.models import PageRevision, Site
 from wagtail.wagtailembeds.embeds import get_embed
 from wagtail.wagtailembeds.models import Embed
+from wagtail.wagtailimages.api.v2.serializers import ImageSerializer
+from wagtail.wagtaildocs.api.v2.serializers import DocumentSerializer
 
 from .fields import LocalDateTimeField, RestEnumField
 from .utils import get_root_relative_url
@@ -47,11 +49,19 @@ class PageRevisionSerializer(ModelSerializer):
         ]
 
 
-class WTNPageSerializer(PageSerializer):
+class WTNPageSerializer(ModelSerializer, PageSerializer):
     root_relative_url = serializers.SerializerMethodField()
 
     def get_root_relative_url(self, instance):
         return get_root_relative_url(instance.url_path)
+
+
+class WTNImageSerializer(ModelSerializer, ImageSerializer):
+    pass
+
+
+class WTNDocumentSerializer(ModelSerializer, DocumentSerializer):
+    pass
 
 
 def get_page_detail_serializer(page, site=None, router=None):

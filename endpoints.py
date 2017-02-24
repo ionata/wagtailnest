@@ -9,7 +9,10 @@ from wagtail.wagtaildocs.api.v2.endpoints import DocumentsAPIEndpoint
 from wagtail.api.v2.utils import (
     BadRequestError, filter_page_type, page_models_from_string)
 
-from wagtailnest.serializers import PageRevisionSerializer, WTNPageSerializer
+from .serializers import (
+    PageRevisionSerializer, WTNDocumentSerializer, WTNImageSerializer,
+    WTNPageSerializer,
+)
 from wagtailnest.utils import _clean_rel_url, get_url_path, publishable_pages
 
 
@@ -197,8 +200,8 @@ class WTNPageRevisionsAPIEndpoint(BaseAPIEndpoint):
 
 
 class WTNImagesAPIEndpoint(ImagesAPIEndpoint):
-    pass
+    base_serializer_class = WTNImageSerializer
 
 
 class WTNDocumentsAPIEndpoint(DocumentsAPIEndpoint):
-    pass
+    base_serializer_class = WTNDocumentSerializer
