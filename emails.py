@@ -40,12 +40,16 @@ class ModelEmail:
         if self.context is None:
             serializer = self.get_serializer(self.instance)
             obj_data = serializer.data
-            site_data = SiteSerializer(Site.objects.first()).data
+            site = Site.objects.first()
+            site_data = SiteSerializer(site).data
             self.context = self.initial_context
             self.context.update({
-                'domain': site_data['hostname'],
-                'site': site_data,
                 'object': obj_data,
+                'site': site_data,
+                'domain': site_data['hostname'],
+                'site_url': site.root_url,
+                'base_url': settings.WAGTAILNEST['BASE_URL'],
+                'frontend_url': settings.WAGTAILNEST['FRONTEND_URL'],
                 serializer.Meta.model._meta.model_name: obj_data,
             })
             extra = self.get_extra_context(self.context)
