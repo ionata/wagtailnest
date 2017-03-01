@@ -1,3 +1,5 @@
+from importlib import import_module
+
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from rest_framework.settings import perform_import
@@ -84,3 +86,18 @@ def serialize_video_url(video_url):
 def import_setting(name, default=None):
     value = perform_import(settings.WAGTAILNEST.get(name, None), name)
     return default if value is None else value
+
+
+def import_from_string(value):
+    """
+    Copy of rest_framework.settings.import_from_string
+    Does not require a setting_name for the exception message"""
+    try:
+        # Nod to tastypie's use of importlib.
+        parts = value.split('.')
+        module_path, class_name = '.'.join(parts[:-1]), parts[-1]
+        module = import_module(module_path)
+        return getattr(module, class_name)
+    except (ImportError, AttributeError) as e:
+        raise ImportError(
+            "Could not import '{}'. {}: {}.".format(value, e.__class__.__name__, e))
