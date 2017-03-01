@@ -132,6 +132,8 @@ class PasswordResetSerializer(serializers.Serializer):
         """Override this method to change default e-mail context."""
         return {
             'email_encoded': urlsafe_base64_encode(self.data['email'].encode('utf-8')),
+            'frontend_url': settings.WAGTAILNEST.get('FRONTEND_URL', ''),
+            'base_url': settings.WAGTAILNEST.get('BASE_URL', ''),
         }
 
     def get_email_options(self):
