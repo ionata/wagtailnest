@@ -28,6 +28,14 @@ new_field_mapping.update({
 })
 
 
+User = get_user_model()
+
+
+CORE_USER_FIELDS = ['id', User.USERNAME_FIELD]
+if User.USERNAME_FIELD != User.EMAIL_FIELD:
+    CORE_USER_FIELDS += [User.EMAIL_FIELD]
+
+
 class ModelSerializer(serializers.ModelSerializer):
     serializer_field_mapping = new_field_mapping
 
@@ -88,9 +96,8 @@ def get_page_detail_serializer(page, site=None, router=None):
 
 class UserDetailsSerializer(ModelSerializer):
     class Meta:
-        model = get_user_model()
-        fields = ['id', 'username', 'email', 'first_name', 'last_name']
-        read_only_fields = ['id', 'username', 'email']
+        model = User
+        read_only_fields = fields = CORE_USER_FIELDS
 
 
 class UserPermissionSerializerMixin(serializers.Serializer):
@@ -125,7 +132,6 @@ class PasswordResetSerializer(serializers.Serializer):
         """Override this method to change default e-mail context."""
         return {
             'email_encoded': urlsafe_base64_encode(self.data['email'].encode('utf-8')),
-            'frontend_url': settings.WAGTAILNEST.get('FRONTEND_URL', ''),
         }
 
     def get_email_options(self):
@@ -158,11 +164,23 @@ class PasswordResetSerializer(serializers.Serializer):
         context = {
             'email': user.email,
             'uid': urlsafe_base64_encode(force_bytes(user.pk)),
-            'user': user,
+            'user': UserDetailsSerializer(user).data,
             'token': default_token_generator.make_token(user),
         }
         context.update(cls({'email': user.email}).get_email_context())
         return context
+
+
+class UserPasswordResetSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = get_user_model()
+        exclude = []
+
+    def __init__(self, user):
+        self._data = PasswordResetSerializer.get_user_email_context(user)
+
+    def data(self):
+        return self._data
 
 
 class SiteSerializer(ModelSerializer):
