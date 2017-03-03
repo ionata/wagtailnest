@@ -181,6 +181,7 @@ class UserPasswordResetSerializer(serializers.ModelSerializer):
     def __init__(self, user):
         self._data = PasswordResetSerializer.get_user_email_context(user)
 
+    @property
     def data(self):
         return self._data
 
