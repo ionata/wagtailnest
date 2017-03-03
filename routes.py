@@ -11,8 +11,11 @@ from rest_framework.settings import import_from_string
 from rest_framework_jwt import views as jwt_views
 from wagtail.utils.apps import get_app_submodules
 from wagtail.api.v2.router import WagtailAPIRouter
+from wagtail.wagtailcore import urls as wagtailcore_urls
 
-from wagtailnest.views import get_schema_view
+from wagtailnest.views import (
+    get_schema_view,
+    DocumentServeView, ImageServeView, ImageView, PageServeView)
 
 
 def _get_endpoint(endpoint):
@@ -45,6 +48,12 @@ api_v1 = [url(r'', include([
         url(r'obtain/', jwt_views.obtain_jwt_token),
         url(r'refresh/', jwt_views.refresh_jwt_token),
         url(r'verify/', jwt_views.verify_jwt_token),
+    ])),
+    url(r'^cms/', include([
+        url(r'^documents/(\d+)/(.*)$', DocumentServeView.as_view(), name='wagtaildocs_serve'),
+        url(r'^images/(?P<pk>\d+)/$', ImageView.as_view(), name='wagtailimages_serve_easy'),
+        url(r'^images/([^/]*)/(\d*)/([^/]*)/[^/]*$', ImageServeView.as_view(), name='wagtailimages_serve'),
+        url(wagtailcore_urls.serve_pattern, PageServeView.as_view(), name='wagtail_serve'),
     ])),
     url(r'^docs/', get_schema_view(title=v1_router.schema_title)),
 ]))]
