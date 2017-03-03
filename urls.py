@@ -3,6 +3,7 @@ from itertools import chain
 from django.conf import settings
 from django.conf.urls import include, url
 from django.contrib import admin
+from revproxy.views import ProxyView
 from wagtail.wagtailadmin import urls as wagtailadmin_urls
 from wagtail.wagtailcore import urls as wagtailcore_urls
 from wagtail.utils.apps import get_app_submodules
@@ -35,6 +36,8 @@ urlpatterns = app_urlpatterns + [
         ])),
         url(r'', include(wagtailadmin_urls)),
     ])),
+    url(r'api/(?P<path>.*)$',
+        ProxyView.as_view(upstream='{}/backend/api/'.format(settings.WAGTAILNEST['BASE_URL']))),
     url(r'', include(wagtailcore_urls)),  # Unreachable; use the frontend
 ]
 
