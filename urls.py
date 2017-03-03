@@ -21,8 +21,10 @@ app_urlpatterns = list(chain.from_iterable([
 
 
 urlpatterns = app_urlpatterns + [
+    url(r'^api/v1/', include(api_v1)),
     url(r'^backend/', include([
-        url(r'^api/v1/', include(api_v1)),
+        url(r'api/(?P<path>.*)$',
+            ProxyView.as_view(upstream='{}/api/'.format(settings.WAGTAILNEST['BASE_URL']))),
         url(r'^django-admin/', include(admin.site.urls)),
         url(r'^cms/', include([
             url(r'^documents/(\d+)/(.*)$', DocumentServeView.as_view(), name='wagtaildocs_serve'),
@@ -36,8 +38,6 @@ urlpatterns = app_urlpatterns + [
         ])),
         url(r'', include(wagtailadmin_urls)),
     ])),
-    url(r'api/(?P<path>.*)$',
-        ProxyView.as_view(upstream='{}/backend/api/'.format(settings.WAGTAILNEST['BASE_URL']))),
     url(r'', include(wagtailcore_urls)),  # Unreachable; use the frontend
 ]
 
