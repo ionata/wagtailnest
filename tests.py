@@ -11,13 +11,23 @@ from rest_framework.test import APIClient
 class APIModelTestCaseMixin:
     model = None
     url = ''
+    viewset_prefix = ''
+    viewset_lookup = 'pk'
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fake = Faker('en_AU')
 
     def get_api_url(self, **kwargs):
-        return reverse(self.url, kwargs=kwargs)
+        if self.viewset_prefix == '':
+            url = self.url
+        else:
+            method = kwargs.get('viewset_method', '')
+            lookup = kwargs.get(self.viewset_lookup)
+            if method == '':
+                method = 'list' if lookup is None else 'detail'
+            url = '{}-{}'.format(self.viewset_prefix, method)
+        return reverse(url, kwargs=kwargs)
 
     def get_client(self, user=None):
         client = APIClient()
@@ -84,8 +94,11 @@ class APIModelTestCaseMixin:
             return 204
         return 200
 
-    def _test_request(self, data=None, user=None, bad_fields=None, method='post', pk=None, code=None):
-        kwargs = {} if pk is None else {'pk': pk}
+    def _test_request(self, data=None, user=None, bad_fields=None,
+                      method='post', pk=None, code=None, viewset_method=None):
+        kwargs = {} if pk is None else {self.viewset_lookup: pk}
+        if viewset_method is not None:
+            kwargs['viewset_method'] = viewset_method
         client = self.get_client(user)
         response = getattr(client, method)(self.get_api_url(**kwargs), data)
         code = self._get_code(method, code, bad_fields)
