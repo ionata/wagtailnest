@@ -12,6 +12,7 @@ class APIModelTestCaseMixin:
     model = None
     url = ''
     viewset_prefix = ''
+    viewset_method = ''
     viewset_lookup = 'pk'
 
     def __init__(self, *args, **kwargs):
@@ -22,7 +23,7 @@ class APIModelTestCaseMixin:
         if self.viewset_prefix == '':
             url = self.url
         else:
-            method = kwargs.get('viewset_method', '')
+            method = kwargs.get('viewset_method', self.viewset_method)
             lookup = kwargs.get(self.viewset_lookup)
             if method == '':
                 method = 'list' if lookup is None else 'detail'
@@ -111,17 +112,17 @@ class APIModelTestCaseMixin:
                 self.check_written(data, response)
         return response
 
-    def _test_post(self, data=None, user=None, bad_fields=None, code=None):
-        return self._test_request(data=data, user=user, bad_fields=bad_fields, method='post', code=code)
+    def _test_post(self, data=None, user=None, bad_fields=None, code=None, viewset_method=None):
+        return self._test_request(data=data, user=user, bad_fields=bad_fields, method='post', code=code, viewset_method=viewset_method)
 
-    def _test_get(self, pk=None, user=None):
-        return self._test_request(user=user, pk=pk, method='get')
+    def _test_get(self, pk=None, user=None, viewset_method=None):
+        return self._test_request(user=user, pk=pk, method='get', viewset_method=None)
 
-    def _test_patch(self, pk, data=None, user=None, bad_fields=None, code=None):
-        return self._test_request(data=data, user=user, bad_fields=bad_fields, method='patch', code=code)
+    def _test_patch(self, pk, data=None, user=None, bad_fields=None, code=None, viewset_method=None):
+        return self._test_request(data=data, user=user, bad_fields=bad_fields, method='patch', code=code, viewset_method=viewset_method)
 
-    def _test_put(self, pk, data=None, user=None, bad_fields=None, code=None):
-        return self._test_request(data=data, user=user, bad_fields=bad_fields, method='put', code=code)
+    def _test_put(self, pk, data=None, user=None, bad_fields=None, code=None, viewset_method=None):
+        return self._test_request(data=data, user=user, bad_fields=bad_fields, method='put', code=code, viewset_method=viewset_method)
 
-    def _test_delete(self, pk, user=None, code=None):
-        return self._test_request(user=user, pk=pk, method='delete', code=code)
+    def _test_delete(self, pk, user=None, code=None, viewset_method=None):
+        return self._test_request(user=user, pk=pk, method='delete', code=code, viewset_method=viewset_method)
