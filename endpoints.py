@@ -207,3 +207,5 @@ class WTNImagesAPIEndpoint(ImagesAPIEndpoint):
 
 class WTNDocumentsAPIEndpoint(DocumentsAPIEndpoint):
     base_serializer_class = WTNDocumentSerializer
+    meta_fields = BaseAPIEndpoint.meta_fields + ['tags', 'download_url', 'filename']
+    nested_default_fields = BaseAPIEndpoint.nested_default_fields + ['title', 'download_url', 'filename']
