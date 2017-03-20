@@ -21,8 +21,7 @@ app_urlpatterns = list(chain.from_iterable([
 urlpatterns = app_urlpatterns + [
     url(r'^api/v1/', include(api_v1)),
     url(r'^backend/', include([
-        url(r'^api/(?P<path>.*)$',
-            ProxyView.as_view(upstream='{}/api/'.format(settings.WAGTAILNEST['BASE_URL']))),
+        url(r'^api/(?P<path>.*)$', ProxyView.as_view(upstream='http://localhost/api/')),
         url(r'^cms/(?P<path>.*)$',
             ProxyView.as_view(upstream='{}/api/v1/cms/'.format(settings.WAGTAILNEST['BASE_URL']))),
         url(r'^django-admin/', include(admin.site.urls)),
