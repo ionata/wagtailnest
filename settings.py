@@ -58,6 +58,7 @@ WAGTAIL_SITE_NAME = "RESTful App"
 WAGTAILNEST = {
     'BASE_URL': 'http://localhost:8000',
     'FRONTEND_URL':  'http://localhost:8000',
+    'LOCAL_URL': 'http://localhost:8000',
     'API_ENDPOINT_DOCS': 'wagtailnest.endpoints.WTNDocumentsAPIEndpoint',
     'API_ENDPOINT_IMAGES': 'wagtailnest.endpoints.WTNImagesAPIEndpoint',
     'API_ENDPOINT_PAGES': 'wagtailnest.endpoints.WTNPagesAPIEndpoint',

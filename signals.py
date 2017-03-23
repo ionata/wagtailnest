@@ -5,6 +5,8 @@ from wagtail.wagtailcore.models import Site as WTSite
 
 
 def sync_sites(sender, instance, **kwargs):  # pylint: disable=unused-argument
+    if kwargs.get('raw', False):
+        return
     site = DJSite.objects.get_or_create(pk=getattr(settings, 'SITE_ID', 1))[0]
     if instance.port in [80, 443]:
         site.domain = instance.hostname

@@ -1,4 +1,5 @@
 from importlib import import_module
+from functools import wraps
 
 from django.conf import settings
 from django.core.urlresolvers import reverse
@@ -101,3 +102,13 @@ def import_from_string(value):
     except (ImportError, AttributeError) as e:
         raise ImportError(
             "Could not import '{}'. {}: {}.".format(value, e.__class__.__name__, e))
+
+
+def nonraw_signal_handler(signal_handler):
+    """Decorator that turns off signal handlers when loading fixture data."""
+    @wraps(signal_handler)
+    def wrapper(*args, **kwargs):
+        if kwargs.get('raw'):
+            return
+        signal_handler(*args, **kwargs)
+    return wrapper
