@@ -5,7 +5,6 @@ from django.conf.urls import include, url
 from django.contrib import admin
 from revproxy.views import ProxyView
 from wagtail.wagtailadmin import urls as wagtailadmin_urls
-from wagtail.wagtailcore import urls as wagtailcore_urls
 from wagtail.utils.apps import get_app_submodules
 
 from wagtailnest.routes import api_v1
@@ -32,7 +31,6 @@ urlpatterns = app_urlpatterns + [
         ])),
         url(r'', include(wagtailadmin_urls)),
     ])),
-    url(r'', include(wagtailcore_urls)),  # Unreachable; use the frontend
 ]
 
 
@@ -45,4 +43,6 @@ if settings.DEBUG:
     newpatterns = staticfiles_urlpatterns()
     newpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     newpatterns += [url(r'^backend/__debug__/', include(debug_toolbar.urls))]
-    urlpatterns = newpatterns + urlpatterns
+    urlpatterns = newpatterns + urlpatterns + [
+        url(r'(?P<path>.*)', ProxyView.as_view(upstream='http://frontend:8080')),  # Frontend app
+    ]
