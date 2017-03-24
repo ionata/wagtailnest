@@ -43,6 +43,4 @@ if settings.DEBUG:
     newpatterns = staticfiles_urlpatterns()
     newpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     newpatterns += [url(r'^backend/__debug__/', include(debug_toolbar.urls))]
-    urlpatterns = newpatterns + urlpatterns + [
-        url(r'(?P<path>.*)', ProxyView.as_view(upstream='http://frontend:8080')),  # Frontend app
-    ]
+    urlpatterns = newpatterns + urlpatterns
