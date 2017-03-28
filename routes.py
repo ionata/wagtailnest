@@ -56,6 +56,6 @@ api_v1 = [url(r'', include([
         url(r'^images/([^/]*)/(\d*)/([^/]*)/[^/]*$', ImageServeView.as_view(), name='wagtailimages_serve'),
         url(wagtailcore_urls.serve_pattern, PageServeView.as_view(), name='wagtail_serve'),
     ])),
-    url(r'^docs/', include_docs_urls(title=settings.WAGTAIL_SITE_NAME)),
-    url(r'^swagger-docs/', get_schema_view(title=settings.WAGTAIL_SITE_NAME)),
+    url(r'^docs/', get_schema_view(title=settings.WAGTAIL_SITE_NAME)),
+    url(r'^drf-docs/', include_docs_urls(title=settings.WAGTAIL_SITE_NAME)),
 ]))]
