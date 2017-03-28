@@ -6,6 +6,7 @@ from django.conf import settings
 from django.conf.urls import include, url
 from rest_auth import urls as rest_auth_urls
 from rest_auth.registration import urls as rest_auth_registration_urls
+from rest_framework.documentation import include_docs_urls
 from rest_framework.routers import DefaultRouter
 from rest_framework.settings import import_from_string
 from rest_framework_jwt import views as jwt_views
@@ -23,7 +24,7 @@ def _get_endpoint(endpoint):
     return import_from_string(settings.WAGTAILNEST[setting_name], setting_name)
 
 
-v1_router = DefaultRouter(schema_title=settings.WAGTAIL_SITE_NAME)
+v1_router = DefaultRouter()
 
 # Add viewsets from apps in the format "routes = [(r'regex', MyViewSet), ...]"
 viewsets = [
@@ -55,5 +56,6 @@ api_v1 = [url(r'', include([
         url(r'^images/([^/]*)/(\d*)/([^/]*)/[^/]*$', ImageServeView.as_view(), name='wagtailimages_serve'),
         url(wagtailcore_urls.serve_pattern, PageServeView.as_view(), name='wagtail_serve'),
     ])),
-    url(r'^docs/', get_schema_view(title=v1_router.schema_title)),
+    url(r'^docs/', include_docs_urls(title=settings.WAGTAIL_SITE_NAME)),
+    url(r'^swagger-docs/', get_schema_view(title=settings.WAGTAIL_SITE_NAME)),
 ]))]
