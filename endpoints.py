@@ -125,8 +125,7 @@ class WTNPagesAPIEndpoint(ExtraAttrsAPIEndpoint, PagesAPIEndpoint):
 
     def get_object(self):
         if self._object is None:
-            base = super(PagesAPIEndpoint, self).get_object()
-            self._object = base.specific
+            self._object = super().get_object()
         return self._object
 
     @property
