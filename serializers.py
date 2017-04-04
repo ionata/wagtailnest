@@ -32,8 +32,9 @@ User = get_user_model()
 
 
 CORE_USER_FIELDS = ['id', User.USERNAME_FIELD]
-if User.USERNAME_FIELD != User.EMAIL_FIELD:
-    CORE_USER_FIELDS += [User.EMAIL_FIELD]
+email_field = getattr(User, 'EMAIL_FIELD', 'email')
+if User.USERNAME_FIELD != email_field:
+    CORE_USER_FIELDS += [email_field]
 
 
 class ModelSerializer(serializers.ModelSerializer):
