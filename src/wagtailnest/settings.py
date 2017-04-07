@@ -45,7 +45,6 @@ INSTALLED_APPS = [
     'django_csv_utils',
     'minimal_user',
     'wagtailnest',
-    'webapp',
 
     # Wagtail apps
     'wagtail.wagtailforms',
