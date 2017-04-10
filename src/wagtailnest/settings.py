@@ -59,7 +59,7 @@ def get_settings(SETTINGS):
     SET['PROJ_ROOT'] = path.abspath(path.dirname(SET['APP_ROOT']))
     SET['REPO_ROOT'] = path.abspath(path.dirname(SET['PROJ_ROOT']))
     SET['DEPLOY_ROOT'] = path.abspath(path.dirname(SET['REPO_ROOT']))
-    SET['VAR_ROOT'] = path.join(SET['REPO_ROOT'], 'var')  # only app-writeable dir
+    SET['VAR_ROOT'] = path.join(SET['DEPLOY_ROOT'], 'var')  # only app-writeable dir
     SET['CACHE_ROOT'] = path.join(SET['VAR_ROOT'], 'cache')
     SET['LOG_ROOT'] = path.join(SET['VAR_ROOT'], 'log')
     SET['DOCUMENT_ROOT'] = path.join(SET['VAR_ROOT'], 'www')
