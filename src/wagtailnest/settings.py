@@ -12,13 +12,48 @@ def _not_defined(setting_name):
     Exception("`{}` has not been defined in your settings".format(setting_name))
 
 
+def from_env(name, fail_late=False):
+    setting = getenv(name, '')
+    if setting != '':
+        return setting
+    ex = Exception("`{}` has not been defined in the environment".format(name))
+    if fail_late:
+        return ex
+    raise ex
+
+
+def _get_email_config(settings):
+    conf = {
+        'DEFAULT_FROM_EMAIL': getenv(
+            'DEPLOYMENT_EMAIL_FROM',
+            'no-reply@{}'.format(settings['HOST_NAME'])),
+        'EMAIL_BACKEND': getenv(
+            'DEPLOYMENT_EMAIL_BACKEND',
+            "django.core.mail.backends.console.EmailBackend")
+    }
+    if conf['EMAIL_BACKEND'] == 'anymail.backends.mailgun.EmailBackend':
+        conf['ANYMAIL'] = {
+            key: from_env('DEPLOYMENT_{}'.format(key))
+            for key in ['MAILGUN_API_KEY', 'MAILGUN_SENDER_DOMAIN']
+        }
+    return conf
+
+
+def _get_database_config(settings):
+    default = {
+        key: from_env('DEPLOYMENT_DATABASE_{}'.format(key), fail_late=True)
+        for key in ['ENGINE', 'NAME', 'USER', 'PASSWORD', 'HOST', 'PORT']
+    }
+    return {'DATABASES': {'default': default}}
+
+
 def _is_app(dir_entry):
     name = getattr(dir_entry, 'name', '_')
     if name[0] in ['.', '_'] or not dir_entry.is_dir():
         return False
     try:
         import_module(name)
-    except ModuleNotFoundError:
+    except ImportError:
         return False
     return True
 
@@ -39,9 +74,8 @@ def get_settings(SETTINGS):
           backend/ - REPO_ROOT
               src/ - PROJ_ROOT
                   manage.py
-                  webapp/ - APP_ROOT (also PROJECT_NAME)
-                      settings/ - SETTINGS_ROOT
-                          project.py - calling file
+                  webapp/ - APP_ROOT/PROJECT_APP (also PROJECT_NAME if undefined)
+                      settings.py - settings_file
           var/ - VAR_ROOT - Follows UNIX naming conventions, app-writeable
               cache/ - CACHE_ROOT
               log/ - LOG_ROOT
@@ -53,9 +87,9 @@ def get_settings(SETTINGS):
           Readme.md
     """
     SET = {}
+    SET['SECRET_KEY'] = SETTINGS.get('SECRET_KEY', from_env('DJANGO_SECRET_KEY', fail_late=True))
     WAGTAILNEST = SETTINGS.get('WAGTAILNEST', {})
-    SET['SETTINGS_ROOT'] = path.abspath(path.dirname(SETTINGS['__file__']))
-    SET['APP_ROOT'] = path.abspath(path.dirname(SET['SETTINGS_ROOT']))
+    SET['APP_ROOT'] = path.abspath(path.dirname(SETTINGS['__file__']))
     SET['PROJ_ROOT'] = path.abspath(path.dirname(SET['APP_ROOT']))
     SET['REPO_ROOT'] = path.abspath(path.dirname(SET['PROJ_ROOT']))
     SET['DEPLOY_ROOT'] = path.abspath(path.dirname(SET['REPO_ROOT']))
@@ -65,14 +99,15 @@ def get_settings(SETTINGS):
     SET['DOCUMENT_ROOT'] = path.join(SET['VAR_ROOT'], 'www')
     SET['STATIC_ROOT'] = path.join(SET['DOCUMENT_ROOT'], 'static')
     SET['MEDIA_ROOT'] = path.join(SET['DOCUMENT_ROOT'], 'media')
-    SET['PROJECT_NAME'] = path.split(SET['APP_ROOT'])[1]
+    SET['PROJECT_APP'] = path.split(SET['APP_ROOT'])[1]
+    SET['PROJECT_NAME'] = getenv('DEPLOYMENT_PROJECT_NAME', SET['PROJECT_APP'])
 
     ################################################################################
     #                          Application Definition                              #
     ################################################################################
-    SET['PROJECT_APPS'] = [SET['PROJECT_NAME']] + [
-        location for location in scandir(SET['PROJ_ROOT'])
-        if _is_app(location) and location.name != SET['PROJECT_NAME']
+    SET['PROJECT_APPS'] = [SET['PROJECT_APP']] + [
+        location.name for location in scandir(SET['PROJ_ROOT'])
+        if _is_app(location) and location.name != SET['PROJECT_APP']
     ]
     SET['WAGTAILNEST_APPS'] = [
         # Our apps
@@ -125,6 +160,8 @@ def get_settings(SETTINGS):
     ]
     if WAGTAILNEST.get('DETECT_PROJECT_APPS', True):
         SET['INSTALLED_APPS'] = SET['PROJECT_APPS'] + SET['WAGTAILNEST_APPS']
+    else:
+        SET['INSTALLED_APPS'] = SET['WAGTAILNEST_APPS']
 
     SET['MIDDLEWARE'] = [
         'django.contrib.sessions.middleware.SessionMiddleware',
@@ -180,30 +217,43 @@ def get_settings(SETTINGS):
     SET['ALLOWED_HOSTS'] = [
         'localhost',
     ] + SET['INTERNAL_IPS']
+    env_allowed_hosts = getenv('DEPLOYMENT_ALLOWED_HOSTS', '')
+    if env_allowed_hosts != '':
+        SET['ALLOWED_HOSTS'].extend(env_allowed_hosts.split(','))
 
     SET['EMAIL_SUBJECT_PREFIX'] = '[Django - {}] '.format(SET['PROJECT_NAME'])
+    SET['HOST_NAME'] = getenv('DEPLOYMENT_HOST_NAME', 'localhost')
+    SET.update(_get_email_config(SET))
+
+    SET.update(_get_database_config(SET))
 
     ###########################################################################
     #                          Celery settings                                #
     ###########################################################################
     SET.update({
         'CELERY_APP_NAME': SET['PROJECT_NAME'],
-        'broker_transport_options': {'visibility_timeout': 3600},  # 1 hour.
-        'broker_url': _not_defined('broker_url'),
-        'result_backend': _not_defined('result_backend'),
+        'BROKER_TRANSPORT_OPTIONS': {'visibility_timeout': 3600},  # 1 hour.
+        'BROKER_URL': from_env('DEPLOYMENT_BROKER_URL', fail_late=True),
+        'CELERY_RESULT_BACKEND': from_env('DEPLOYMENT_CELERY_RESULT_BACKEND', fail_late=True),
     })
 
     ###########################################################################
     #                        Development settings                             #
     ###########################################################################
-    if getenv('WAGTAILNEST_DEBUG'):
-        SET['DEBUG'] = True
+    SET['DEBUG'] = SETTINGS.get('DEBUG', bool(getenv('WAGTAILNEST_DEBUG')))
+    if SET['DEBUG']:
         SET['EMAIL_BACKEND'] = "django.core.mail.backends.console.EmailBackend"
 
-        SET['result_backend'] = SET['broker_url'] = 'redis://redis'
+        SET['SESSION_COOKIE_SECURE'] = False
+        SET['CSRF_COOKIE_SECURE'] = False
+
+        SET['ALLOWED_HOSTS'] = ['*']
+        SET['CORS_ORIGIN_ALLOW_ALL'] = True
+        SET['CELERY_RESULT_BACKEND'] = SET['BROKER_URL'] = 'redis://redis'
+
         SET['DATABASES'] = {
             'default': {
-                'ENGINE': 'django.db.backends.postgresql',
+                'ENGINE': 'django.contrib.gis.db.backends.postgis',
                 'NAME': 'django',
                 'USER': 'django',
                 'PASSWORD': 'django',
@@ -214,6 +264,7 @@ def get_settings(SETTINGS):
 
         SET['INSTALLED_APPS'] += [  # NOQA
             'debug_toolbar',
+            'debug_toolbar_line_profiler',
             'wagtail.contrib.wagtailstyleguide',
         ]
         SET['MIDDLEWARE'] = [
@@ -264,6 +315,10 @@ def get_settings(SETTINGS):
     SET['ACCOUNT_USER_MODEL_USERNAME_FIELD'] = None  # type: str
     SET['ACCOUNT_USERNAME_REQUIRED'] = False
 
+    env_cors_origin = getenv('DEPLOYMENT_CORS_ORIGIN_WHITELIST', '')
+    if env_cors_origin != '':
+        SET['CORS_ORIGIN_WHITELIST'] = env_cors_origin.split(',')
+
     ###########################################################################
     #                          Wagtail settings                               #
     ###########################################################################
@@ -280,9 +335,9 @@ def get_settings(SETTINGS):
     #                        Wagtailnest settings                             #
     ###########################################################################
     SET['WAGTAILNEST'] = {
-        'BASE_URL': 'http://localhost',
-        'FRONTEND_URL':  'http://localhost',
-        'LOCAL_URL': 'http://localhost',
+        'BASE_URL': getenv('DEPLOYMENT_BASE_URL', 'http://localhost'),
+        'FRONTEND_URL': getenv('DEPLOYMENT_FRONTEND_URL', 'http://localhost'),
+        'LOCAL_URL': getenv('DEPLOYMENT_LOCAL_URL', 'http://localhost'),
         'API_ENDPOINT_DOCS': 'wagtailnest.endpoints.WTNDocumentsAPIEndpoint',
         'API_ENDPOINT_IMAGES': 'wagtailnest.endpoints.WTNImagesAPIEndpoint',
         'API_ENDPOINT_PAGES': 'wagtailnest.endpoints.WTNPagesAPIEndpoint',
