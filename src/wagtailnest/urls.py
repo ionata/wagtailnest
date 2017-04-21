@@ -3,7 +3,7 @@ from itertools import chain
 from django.conf import settings
 from django.conf.urls import include, url
 from django.contrib import admin
-from revproxy.views import ProxyView
+from django.views.generic.base import RedirectView
 from wagtail.wagtailadmin import urls as wagtailadmin_urls
 from wagtail.utils.apps import get_app_submodules
 
@@ -18,12 +18,9 @@ app_urlpatterns = list(chain.from_iterable([
 
 
 urlpatterns = app_urlpatterns + [
-    url(r'^api/v1/', include(api_v1)),
     url(r'^backend/', include([
-        url(r'^api/(?P<path>.*)$',
-            ProxyView.as_view(upstream='{}/api/'.format(settings.WAGTAILNEST['LOCAL_URL']))),
-        url(r'^cms/(?P<path>.*)$',
-            ProxyView.as_view(upstream='{}/api/v1/cms/'.format(settings.WAGTAILNEST['LOCAL_URL']))),
+        url(r'^api/v1/', include(api_v1)),
+        url(r'^cms/(?P<path>.*)$', RedirectView.as_view(url='/backend/api/v1/cms/%(path)s', query_string=True)),
         url(r'^django-admin/', include(admin.site.urls)),
         url(r'^pages/', include([
             url(r'^(?P<pk>\d+)/view_draft/$', DraftRedirectView.as_view(), name='view_draft'),
