@@ -29,6 +29,7 @@ setup(
     packages=find_packages('src'),
     install_requires=requirements,
     package_dir={'': 'src'},
+    include_package_data=True,
     classifiers=[
         'Environment :: Web Environment',
         'Framework :: Django',
