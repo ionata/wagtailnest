@@ -36,8 +36,10 @@ beautifulsoup4
 ## Development
 tblib
 ipdb
+django-pdb
 ptpython
 werkzeug
+watchdog
 django-debug-toolbar
 django-debug-toolbar-line-profiler
 

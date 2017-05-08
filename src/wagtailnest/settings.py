@@ -31,7 +31,7 @@ def _get_email_config(settings):
             'DEPLOYMENT_EMAIL_BACKEND',
             "django.core.mail.backends.console.EmailBackend")
     }
-    if conf['EMAIL_BACKEND'] == 'anymail.backends.mailgun.EmailBackend':
+    if conf['EMAIL_BACKEND'] == 'anymail.backends.mailgun.MailgunBackend':
         conf['ANYMAIL'] = {
             key: from_env('DEPLOYMENT_{}'.format(key))
             for key in ['MAILGUN_API_KEY', 'MAILGUN_SENDER_DOMAIN']
