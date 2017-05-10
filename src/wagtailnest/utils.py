@@ -57,6 +57,29 @@ def can_publish(user, page):
     return page.pk in publishable_pages(user).values_list('pk', flat=True)
 
 
+def get_url_components(url):
+    try:
+        url_parts = url.split('://', 1)
+    except AttributeError:
+        raise ValueError("expected a 'str' object, got a '{}' object".format(url.__class__.__name__))
+    if len(url_parts) < 2:
+        raise ValueError('invalid URL. Must be of form "<protocol>://<domain>:<port>"')
+    protocol, url_parts = url_parts
+    url_parts = url_parts.rsplit(':', 1)
+    hostname = url_parts[0]
+    if protocol == 'http':
+        port = 80
+    elif protocol == 'https':
+        port = 443
+    else:
+        raise ValueError('unexpected protocol ({})'.format(protocol))
+    try:
+        port = int(url_parts[1]) if len(url_parts) > 1 else port
+    except ValueError:
+        raise ValueError("unexpected port value (expected only a number, got '{}')".format(url_parts[1]))
+    return (protocol, hostname, port)
+
+
 def generate_image_url(image, filter_spec):
     """
     From an Image, get a URL.

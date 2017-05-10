@@ -314,6 +314,8 @@ def get_settings(SETTINGS):
         'API_ENDPOINT_PAGES': 'wagtailnest.endpoints.WTNPagesAPIEndpoint',
         'API_ENDPOINT_PAGE_REVS': 'wagtailnest.endpoints.WTNPageRevisionsAPIEndpoint',
         'API_USER_PERMISSION_APPS': [],
+        'ADMIN_USERNAME': from_env('DEPLOYMENT_ADMIN_USERNAME'),
+        'ADMIN_PASSWORD': from_env('DEPLOYMENT_ADMIN_PASSWORD'),
         # Commented-out to default to DRF's DEFAULT_PERMISSION_CLASSES
         # 'DOCUMENT_PERMISSION_CLASSES': [],
         # 'IMAGE_PERMISSION_CLASSES': [],
