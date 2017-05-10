@@ -22,6 +22,10 @@ def from_env(name, fail_late=False):
     raise ex
 
 
+def str_to_bool(obj):
+    return obj if isinstance(obj, bool) else obj.lower().strip() == 'true'
+
+
 def _get_email_config(settings):
     conf = {
         'DEFAULT_FROM_EMAIL': getenv(
@@ -86,6 +90,11 @@ def get_settings(SETTINGS):
           requirements.txt
           Readme.md
     """
+    DEFAULTS = {
+        'SESSION_COOKIE_SECURE': True,
+        'CSRF_COOKIE_SECURE': True,
+    }
+
     SET = {}
     SET['SECRET_KEY'] = SETTINGS.get('SECRET_KEY', from_env('DJANGO_SECRET_KEY', fail_late=True))
     WAGTAILNEST = SETTINGS.get('WAGTAILNEST', {})
@@ -238,44 +247,6 @@ def get_settings(SETTINGS):
     })
 
     ###########################################################################
-    #                        Development settings                             #
-    ###########################################################################
-    SET['DEBUG'] = SETTINGS.get('DEBUG', bool(getenv('WAGTAILNEST_DEBUG')))
-    if SET['DEBUG']:
-        SET['EMAIL_BACKEND'] = "django.core.mail.backends.console.EmailBackend"
-
-        SET['SESSION_COOKIE_SECURE'] = False
-        SET['CSRF_COOKIE_SECURE'] = False
-
-        SET['ALLOWED_HOSTS'] = ['*']
-        SET['CORS_ORIGIN_ALLOW_ALL'] = True
-        SET['CELERY_RESULT_BACKEND'] = SET['BROKER_URL'] = 'redis://redis'
-
-        SET['DATABASES'] = {
-            'default': {
-                'ENGINE': 'django.contrib.gis.db.backends.postgis',
-                'NAME': 'django',
-                'USER': 'django',
-                'PASSWORD': 'django',
-                'HOST': 'db',
-                'PORT': '',
-            }
-        }
-
-        SET['INSTALLED_APPS'] += [  # NOQA
-            'debug_toolbar',
-            'debug_toolbar_line_profiler',
-            'wagtail.contrib.wagtailstyleguide',
-        ]
-        SET['MIDDLEWARE'] = [
-            'debug_toolbar.middleware.DebugToolbarMiddleware',
-        ] + SET['MIDDLEWARE']  # NOQA
-        SET['DEBUG_TOOLBAR_CONFIG'] = {
-            'SHOW_COLLAPSED': True,
-            'SHOW_TOOLBAR_CALLBACK': lambda request: True
-        }
-
-    ###########################################################################
     #                             Auth settings                               #
     ###########################################################################
     SET['ANONYMOUS_USER_ID'] = -1
@@ -327,8 +298,8 @@ def get_settings(SETTINGS):
     SET['WAGTAIL_USER_CREATION_FORM'] = 'wagtailnest.forms.CustomUserCreationForm'
     SET['SESSION_COOKIE_PATH'] = '/backend/'
     SET['CSRF_COOKIE_PATH'] = '/backend/'
-    SET['SESSION_COOKIE_SECURE'] = True
-    SET['CSRF_COOKIE_SECURE'] = True
+    SET['SESSION_COOKIE_SECURE'] = str_to_bool(getenv('DEPLOYMENT_SESSION_COOKIE_SECURE', DEFAULTS['SESSION_COOKIE_SECURE']))
+    SET['CSRF_COOKIE_SECURE'] = str_to_bool(getenv('DEPLOYMENT_CSRF_COOKIE_SECURE', DEFAULTS['CSRF_COOKIE_SECURE']))
     SET['WAGTAIL_SITE_NAME'] = "{} API dashboard".format(SET['PROJECT_NAME'])
 
     ###########################################################################
@@ -349,5 +320,43 @@ def get_settings(SETTINGS):
         # 'PAGE_PERMISSION_CLASSES': []
     }
     SET['WAGTAILNEST'].update(WAGTAILNEST)
+
+    ###########################################################################
+    #                        Development settings                             #
+    ###########################################################################
+    SET['DEBUG'] = SETTINGS.get('DEBUG', str_to_bool(getenv('WAGTAILNEST_DEBUG')))
+    if SET['DEBUG']:
+        SET['EMAIL_BACKEND'] = "django.core.mail.backends.console.EmailBackend"
+
+        SET['SESSION_COOKIE_SECURE'] = str_to_bool(getenv('DEPLOYMENT_SESSION_COOKIE_SECURE', False))
+        SET['CSRF_COOKIE_SECURE'] = str_to_bool(getenv('DEPLOYMENT_CSRF_COOKIE_SECURE', False))
+
+        SET['ALLOWED_HOSTS'] = ['*']
+        SET['CORS_ORIGIN_ALLOW_ALL'] = True
+        SET['CELERY_RESULT_BACKEND'] = SET['BROKER_URL'] = 'redis://redis'
+
+        SET['DATABASES'] = {
+            'default': {
+                'ENGINE': 'django.contrib.gis.db.backends.postgis',
+                'NAME': 'django',
+                'USER': 'django',
+                'PASSWORD': 'django',
+                'HOST': 'db',
+                'PORT': '',
+            }
+        }
+
+        SET['INSTALLED_APPS'] += [  # NOQA
+            'debug_toolbar',
+            'debug_toolbar_line_profiler',
+            'wagtail.contrib.wagtailstyleguide',
+        ]
+        SET['MIDDLEWARE'] = [
+            'debug_toolbar.middleware.DebugToolbarMiddleware',
+        ] + SET['MIDDLEWARE']  # NOQA
+        SET['DEBUG_TOOLBAR_CONFIG'] = {
+            'SHOW_COLLAPSED': True,
+            'SHOW_TOOLBAR_CALLBACK': lambda request: True
+        }
 
     return SET
