@@ -2,7 +2,6 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.sites.models import Site as DJSite
 from django.db.utils import IntegrityError
-from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _
 from wagtail.wagtailcore.models import Site as WTSite, Page
 from wagtailnest.utils import get_url_components
@@ -50,10 +49,10 @@ def setup():
     User = get_user_model()
     if User is None:
         raise ImportError(_("Cannot import the specified User model"))
-    defaults = {'invite_sent': now(),
-                'is_staff': True,
-                'is_superuser': True,
-                'is_active': True,
+    defaults = {
+        'is_staff': True,
+        'is_superuser': True,
+        'is_active': True,
     }
     user, created = User.objects.get_or_create(email=username, defaults=defaults)
     if created:
