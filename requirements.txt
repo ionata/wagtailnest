@@ -1,18 +1,18 @@
 ## Core requirements
-django~=1.10.6
+django~=1.11.0
 djangorestframework~=3.6.2
-djangorestframework-filters~=0.9.1
+djangorestframework-filters~=0.10.0
 djangorestframework-jwt
 django-allauth~=0.27.0
 django-cors-headers~=1.2.2
 django-csv-utils
 django-enumfields
-django-filter~=0.15.3
+django-filter~=1.0.2
 django-minimal-user==0.0.1
 django-rest-auth~=0.9.0
 django-rest-swagger~=2.0.6
 django-revproxy
-wagtail~=1.9.0
+wagtail~=1.10.0
 
 ## Tasking
 celery[redis]
