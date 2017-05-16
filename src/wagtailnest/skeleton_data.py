@@ -15,9 +15,12 @@ def setup():
     # Create Django Site
     djsites = list(DJSite.objects.all())
     if len(djsites) == 1:
-        djsites[0].domain = "{}:{}".format(hostname, port)
-        djsites[0].name = site_name
-        djsites[0].save()
+        djsite = djsites[0]
+        djsite.domain = hostname
+        if port not in [80, 443]:
+            djsite.domain += ":{}".format(port)
+        djsite.name = site_name
+        djsite.save()
     else:
         try:
             DJSite.objects.create(domain=base_url, name=site_name)
@@ -31,10 +34,11 @@ def setup():
     else:
         root_page = root_page[0].get_root()
     if len(wsites) == 1:
-        wsites[0].hostname = hostname
-        wsites[0].port = port
-        wsites[0].site_name = site_name
-        wsites[0].save()
+        wsite = wsites[0]
+        wsite.hostname = hostname
+        wsite.port = port
+        wsite.site_name = site_name
+        wsite.save()
     else:
         if len(wsites) > 1:
             root_page = wsites[0].root_page
@@ -48,7 +52,7 @@ def setup():
     password = settings.WAGTAILNEST['ADMIN_PASSWORD']
     User = get_user_model()
     if User is None:
-        raise ImportError(_("Cannot import the specified User model"))
+        raise ImportError("Cannot import the specified User model")
     defaults = {
         'is_staff': True,
         'is_superuser': True,
