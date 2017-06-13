@@ -1,3 +1,6 @@
+## Setup/running requirements
+django-environ~=0.4.3
+
 ## Core requirements
 django~=1.11.0
 djangorestframework~=3.6.2

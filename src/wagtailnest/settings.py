@@ -3,6 +3,14 @@ from importlib import import_module
 from os import getenv, path, scandir
 import sys
 
+import environ
+
+
+TYPES = {
+    'ADMINS': list,
+    'MANAGERS': list,
+}
+
 
 DEFAULTS = {
     'DEPLOYMENT_ALLOWED_HOSTS': '',
@@ -58,6 +66,12 @@ def from_env(name, fail_late=False):
     raise ex
 
 
+def to_email_list(obj):
+    if isinstance(obj, str):
+        obj = obj.split(',')
+    return [x.split(':') for x in obj]
+
+
 def to_bool(obj):
     return obj.lower().strip() == 'true' if isinstance(obj, str) else bool(obj)
 
@@ -96,7 +110,7 @@ def _is_app(dir_entry):
     return True
 
 
-def get_settings(SETTINGS):
+def get_settings(settings, types=None):
     """
     Add these settings into the globals() for another settings file
     Usage:
@@ -124,18 +138,20 @@ def get_settings(SETTINGS):
           requirements.txt
           Readme.md
     """
+    TYPES.update({} if types is None else types)
+    env = environ.Env(**TYPES)
     SET = {}
     SET.update(DEFAULTS)
     SET['WAGTAILNEST_DEBUG'] = to_bool(getenv('WAGTAILNEST_DEBUG'))
-    SET['DEBUG'] = SETTINGS.get('DEBUG', SET['WAGTAILNEST_DEBUG'])
+    SET['DEBUG'] = settings.get('DEBUG', SET['WAGTAILNEST_DEBUG'])
     if SET['DEBUG']:
         SET.update(DEBUG_DEFAULTS)
     ###########################################################################
     #                          Development core                               #
     ###########################################################################
-    SET['SECRET_KEY'] = SETTINGS.get('SECRET_KEY', from_env('DJANGO_SECRET_KEY', fail_late=True))
-    WAGTAILNEST = SETTINGS.get('WAGTAILNEST', {})
-    SET['APP_ROOT'] = path.abspath(path.dirname(SETTINGS['__file__']))
+    SET['SECRET_KEY'] = settings.get('SECRET_KEY', from_env('DJANGO_SECRET_KEY', fail_late=True))
+    WAGTAILNEST = settings.get('WAGTAILNEST', {})
+    SET['APP_ROOT'] = path.abspath(path.dirname(settings['__file__']))
     SET['PROJ_ROOT'] = path.abspath(path.dirname(SET['APP_ROOT']))
     SET['REPO_ROOT'] = path.abspath(path.dirname(SET['PROJ_ROOT']))
     SET['DEPLOY_ROOT'] = path.abspath(path.dirname(SET['REPO_ROOT']))
@@ -269,6 +285,8 @@ def get_settings(SETTINGS):
 
     SET['EMAIL_SUBJECT_PREFIX'] = '[Django - {}] '.format(SET['PROJECT_NAME'])
     SET['HOST_NAME'] = from_env('DEPLOYMENT_HOST_NAME')
+    SET['ADMINS'] = to_email_list(env('ADMINS'))
+    SET['MANAGERS'] = to_email_list(env('MANAGERS'))
     SET.update(_get_email_config(SET))
     SET.update(_get_database_config(SET))
 
