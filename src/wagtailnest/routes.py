@@ -1,7 +1,6 @@
-"""
-URLs for the API interfaces.
-"""
+"""URLs for the API interfaces."""
 from itertools import chain
+
 from django.conf import settings
 from django.conf.urls import include, url
 from rest_auth import urls as rest_auth_urls
@@ -14,9 +13,7 @@ from wagtail.utils.apps import get_app_submodules
 from wagtail.api.v2.router import WagtailAPIRouter
 from wagtail.wagtailcore import urls as wagtailcore_urls
 
-from wagtailnest.views import (
-    get_schema_view,
-    DocumentServeView, ImageServeView, ImageView, PageServeView)
+from wagtailnest import views as wtn
 
 
 def _get_endpoint(endpoint):
@@ -40,22 +37,27 @@ wt_router.register_endpoint('page_revisions', _get_endpoint('PAGE_REVS'))
 wt_router.register_endpoint('images', _get_endpoint('IMAGES'))
 wt_router.register_endpoint('documents', _get_endpoint('DOCS'))
 
-api_v1 = [url(r'', include([
+api_v1 = [
     url(r'', include(v1_router.urls)),
+
     url(r'', include(wt_router.urls)),
+    url(r'^cms/', include([
+        url(r'^documents/(\d+)/(.*)$', wtn.DocumentServeView.as_view(), name='wagtaildocs_serve'),
+        url(r'^images/(?P<pk>\d+)/$', wtn.ImageView.as_view(), name='wagtailimages_serve_easy'),
+        url(r'^images/([^/]*)/(\d*)/([^/]*)/[^/]*$', wtn.ImageServeView.as_view(), name='wagtailimages_serve'),
+        url(wagtailcore_urls.serve_pattern, wtn.PageServeView.as_view(), name='wagtail_serve'),
+    ])),
+
+    url(r'^docs/', wtn.get_schema_view(title=settings.WAGTAIL_SITE_NAME)),
+    url(r'^drf-docs/', include_docs_urls(title=settings.WAGTAIL_SITE_NAME)),
+
     url(r'^auth/', include(rest_auth_urls)),
-    url(r'^auth/registration/', include(rest_auth_registration_urls)),
     url(r'^auth/token/', include([
         url(r'obtain/', jwt_views.obtain_jwt_token),
         url(r'refresh/', jwt_views.refresh_jwt_token),
         url(r'verify/', jwt_views.verify_jwt_token),
     ])),
-    url(r'^cms/', include([
-        url(r'^documents/(\d+)/(.*)$', DocumentServeView.as_view(), name='wagtaildocs_serve'),
-        url(r'^images/(?P<pk>\d+)/$', ImageView.as_view(), name='wagtailimages_serve_easy'),
-        url(r'^images/([^/]*)/(\d*)/([^/]*)/[^/]*$', ImageServeView.as_view(), name='wagtailimages_serve'),
-        url(wagtailcore_urls.serve_pattern, PageServeView.as_view(), name='wagtail_serve'),
-    ])),
-    url(r'^docs/', get_schema_view(title=settings.WAGTAIL_SITE_NAME)),
-    url(r'^drf-docs/', include_docs_urls(title=settings.WAGTAIL_SITE_NAME)),
-]))]
+]
+
+if settings.ACCOUNT_REGISTRATION.lower() == 'enabled':
+    api_v1.append(url(r'^auth/registration/', include(rest_auth_registration_urls)))

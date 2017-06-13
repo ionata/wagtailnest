@@ -321,6 +321,7 @@ def get_settings(SETTINGS):
     SET['ACCOUNT_EMAIL_VERIFICATION'] = 'none'
     SET['ACCOUNT_USER_MODEL_USERNAME_FIELD'] = None  # type: str
     SET['ACCOUNT_USERNAME_REQUIRED'] = False
+    SET['ACCOUNT_REGISTRATION'] = from_env('DEPLOYMENT_REGISTRATION')
 
     env_cors_origin = from_env('DEPLOYMENT_CORS_ORIGIN_WHITELIST')
     if env_cors_origin != '':
