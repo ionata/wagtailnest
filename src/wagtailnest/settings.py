@@ -334,6 +334,7 @@ def get_settings(settings, types=None):
     SET['REST_AUTH_SERIALIZERS'] = {
         'USER_DETAILS_SERIALIZER': 'minimal_user.serializers.UserDetailsSerializer',
         'PASSWORD_RESET_SERIALIZER': 'wagtailnest.serializers.PasswordResetSerializer',
+        'LOGIN_SERIALIZER': 'wagtailnest.serializers.LoginSerializer',
     }
     SET['REST_USE_JWT'] = True
     SET['JWT_AUTH'] = {
