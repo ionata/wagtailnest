@@ -11,7 +11,7 @@ django-filter~=1.0.2
 django-minimal-user==0.0.1
 django-rest-auth~=0.9.0
 django-rest-swagger~=2.0.6
-django-revproxy
+django-revproxy==0.9.13
 wagtail~=1.10.0
 
 ## Tasking
@@ -19,14 +19,13 @@ celery[redis]
 
 ## Nice-to-haves
 werkzeug
-django-debug-toolbar
 django-extensions
 
 ## Python extras
 pytz
 python-dateutil
 Pillow
-requests
+requests==2.15.1
 geopy
 faker
 pygments
