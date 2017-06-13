@@ -58,7 +58,12 @@ def setup():
         'is_superuser': True,
         'is_active': True,
     }
-    user, created = User.objects.get_or_create(email=username, defaults=defaults)
-    if created:
-        user.set_password(password)
-    user.save()
+    try:
+        user, created = User.objects.get_or_create(email=username, defaults=defaults)
+        if created:
+            user.set_password(password)
+        user.save()
+    except IntegrityError:
+        print(_("Admin User could not be created here: The user model is "
+                "not standard. Use a custom setup_skeleton to create a "
+                "default admin user."))
