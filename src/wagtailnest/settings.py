@@ -363,7 +363,8 @@ def get_settings(SETTINGS):
     ###########################################################################
     #                        Development settings                             #
     ###########################################################################
-    if SET['DEBUG']:
+    SET['DEPLOYMENT_USE_DJDT'] = to_bool(from_env('DEPLOYMENT_USE_DJDT'))
+    if SET['DEBUG'] and SET['DEPLOYMENT_USE_DJDT']:
         SET['INSTALLED_APPS'] += [
             'debug_toolbar',
             'debug_toolbar_line_profiler',
