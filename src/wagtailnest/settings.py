@@ -6,44 +6,50 @@ import sys
 import environ
 
 
-TYPES = {
-    'ADMINS': list,
-    'MANAGERS': list,
-}
+def deployment_dict(original):
+    return {'DEPLOYMENT_%s' % k: v for k, v in original.items()}
 
 
-DEFAULTS = {
-    'DEPLOYMENT_ALLOWED_HOSTS': '',
-    'DEPLOYMENT_BASE_URL': 'http://localhost',
-    'DEPLOYMENT_BROKER_URL': 'redis://',
-    'DEPLOYMENT_CELERY_RESULT_BACKEND': 'redis://',
-    'DEPLOYMENT_CORS_ORIGIN_WHITELIST': '',
-    'DEPLOYMENT_CSRF_COOKIE_SECURE': True,
-    'DEPLOYMENT_EMAIL_BACKEND': "django.core.mail.backends.console.EmailBackend",
-    'DEPLOYMENT_FRONTEND_URL': 'http://localhost',
-    'DEPLOYMENT_HOST_NAME': 'localhost',
-    'DEPLOYMENT_LOCAL_URL': 'http://localhost',
-    'DEPLOYMENT_REGISTRATION': 'enabled',
-    'DEPLOYMENT_SESSION_COOKIE_SECURE': True,
-    'DEPLOYMENT_USE_DJDT': False,
-}
+DEFAULTS = deployment_dict({
+    'ADMINS': [],
+    'ALLOWED_HOSTS': '',
+    'BASE_URL': 'http://localhost',
+    'BROKER_URL': 'redis://',
+    'CELERY_RESULT_BACKEND': 'redis://',
+    'CORS_ORIGIN_WHITELIST': '',
+    'CSRF_COOKIE_SECURE': True,
+    'EMAIL_BACKEND': "django.core.mail.backends.console.EmailBackend",
+    'FRONTEND_URL': 'http://localhost',
+    'HOST_NAME': 'localhost',
+    'LOCAL_URL': 'http://localhost',
+    'MANAGERS': [],
+    'REGISTRATION': 'enabled',
+    'SESSION_COOKIE_SECURE': True,
+    'USE_DJDT': False,
+})
 
 
-DEBUG_DEFAULTS = {
-    'DEPLOYMENT_ALLOWED_HOSTS': '*',
-    'DEPLOYMENT_BROKER_URL': 'redis://redis',
-    'DEPLOYMENT_CELERY_RESULT_BACKEND': 'redis://redis',
-    'DEPLOYMENT_CORS_ORIGIN_ALLOW_ALL': True,
-    'DEPLOYMENT_CSRF_COOKIE_SECURE': False,
-    'DEPLOYMENT_DATABASE_ENGINE': 'django.contrib.gis.db.backends.postgis',
-    'DEPLOYMENT_DATABASE_HOST': 'db',
-    'DEPLOYMENT_DATABASE_NAME': 'django',
-    'DEPLOYMENT_DATABASE_PASSWORD': 'django',
-    'DEPLOYMENT_DATABASE_PORT': 5432,
-    'DEPLOYMENT_DATABASE_USER': 'django',
-    'DEPLOYMENT_SESSION_COOKIE_SECURE': False,
-    'DEPLOYMENT_USE_DJDT': True,
-}
+DEBUG_DEFAULTS = deployment_dict({
+    'ALLOWED_HOSTS': '*',
+    'BROKER_URL': 'redis://redis',
+    'CELERY_RESULT_BACKEND': 'redis://redis',
+    'CORS_ORIGIN_ALLOW_ALL': True,
+    'CSRF_COOKIE_SECURE': False,
+    'DATABASE_ENGINE': 'django.contrib.gis.db.backends.postgis',
+    'DATABASE_HOST': 'db',
+    'DATABASE_NAME': 'django',
+    'DATABASE_PASSWORD': 'django',
+    'DATABASE_PORT': 5432,
+    'DATABASE_USER': 'django',
+    'SESSION_COOKIE_SECURE': False,
+    'USE_DJDT': True,
+})
+
+
+# Types and defaults for environ (will replace above eventually)
+TYPES = {k: (type(v), v) for k, v in DEFAULTS.items()}
+TYPES.update({  # Custom declarations go here
+})
 
 
 if sys.version_info < (3, 5):
@@ -285,8 +291,8 @@ def get_settings(settings, types=None):
 
     SET['EMAIL_SUBJECT_PREFIX'] = '[Django - {}] '.format(SET['PROJECT_NAME'])
     SET['HOST_NAME'] = from_env('DEPLOYMENT_HOST_NAME')
-    SET['ADMINS'] = to_email_list(env('ADMINS'))
-    SET['MANAGERS'] = to_email_list(env('MANAGERS'))
+    SET['ADMINS'] = to_email_list(env('DEPLOYMENT_ADMINS'))
+    SET['MANAGERS'] = to_email_list(env('DEPLOYMENT_MANAGERS'))
     SET.update(_get_email_config(SET))
     SET.update(_get_database_config(SET))
 
