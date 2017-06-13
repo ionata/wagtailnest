@@ -4,6 +4,40 @@ from os import getenv, path, scandir
 import sys
 
 
+DEFAULTS = {
+    'DEPLOYMENT_ALLOWED_HOSTS': '',
+    'DEPLOYMENT_BASE_URL': 'http://localhost',
+    'DEPLOYMENT_BROKER_URL': 'redis://',
+    'DEPLOYMENT_CELERY_RESULT_BACKEND': 'redis://',
+    'DEPLOYMENT_CORS_ORIGIN_WHITELIST': '',
+    'DEPLOYMENT_CSRF_COOKIE_SECURE': True,
+    'DEPLOYMENT_EMAIL_BACKEND': "django.core.mail.backends.console.EmailBackend",
+    'DEPLOYMENT_FRONTEND_URL': 'http://localhost',
+    'DEPLOYMENT_HOST_NAME': 'localhost',
+    'DEPLOYMENT_LOCAL_URL': 'http://localhost',
+    'DEPLOYMENT_REGISTRATION': 'enabled',
+    'DEPLOYMENT_SESSION_COOKIE_SECURE': True,
+    'DEPLOYMENT_USE_DJDT': False,
+}
+
+
+DEBUG_DEFAULTS = {
+    'DEPLOYMENT_ALLOWED_HOSTS': '*',
+    'DEPLOYMENT_BROKER_URL': 'redis://redis',
+    'DEPLOYMENT_CELERY_RESULT_BACKEND': 'redis://redis',
+    'DEPLOYMENT_CORS_ORIGIN_ALLOW_ALL': True,
+    'DEPLOYMENT_CSRF_COOKIE_SECURE': False,
+    'DEPLOYMENT_DATABASE_ENGINE': 'django.contrib.gis.db.backends.postgis',
+    'DEPLOYMENT_DATABASE_HOST': 'db',
+    'DEPLOYMENT_DATABASE_NAME': 'django',
+    'DEPLOYMENT_DATABASE_PASSWORD': 'django',
+    'DEPLOYMENT_DATABASE_PORT': 5432,
+    'DEPLOYMENT_DATABASE_USER': 'django',
+    'DEPLOYMENT_SESSION_COOKIE_SECURE': False,
+    'DEPLOYMENT_USE_DJDT': True,
+}
+
+
 if sys.version_info < (3, 5):
     raise ImportError("Python3.5 or higher is required")
 
@@ -12,10 +46,10 @@ def _not_defined(setting_name):
     Exception("`{}` has not been defined in your settings".format(setting_name))
 
 
-def from_env(name, fail_late=False, defaults=None):
+def from_env(name, fail_late=False):
     setting = getenv(name, '')
-    if setting == '' and defaults is not None:
-        setting = defaults.get(name, '')
+    if setting == '':
+        setting = DEFAULTS.get(name, '')
     if setting != '':
         return setting
     ex = Exception("`{}` has not been defined in the environment".format(name))
@@ -24,16 +58,16 @@ def from_env(name, fail_late=False, defaults=None):
     raise ex
 
 
-def str_to_bool(obj):
-    return obj if isinstance(obj, bool) else obj.lower().strip() == 'true'
+def to_bool(obj):
+    return obj.lower().strip() == 'true' if isinstance(obj, str) else bool(obj)
 
 
-def _get_email_config(settings, defaults):
+def _get_email_config(settings):
     conf = {
         'DEFAULT_FROM_EMAIL': getenv(
             'DEPLOYMENT_EMAIL_FROM',
             'no-reply@{}'.format(settings['HOST_NAME'])),
-        'EMAIL_BACKEND': from_env('DEPLOYMENT_EMAIL_BACKEND', defaults=defaults)
+        'EMAIL_BACKEND': from_env('DEPLOYMENT_EMAIL_BACKEND')
     }
     if conf['EMAIL_BACKEND'] == 'anymail.backends.mailgun.MailgunBackend':
         conf['ANYMAIL'] = {
@@ -43,9 +77,9 @@ def _get_email_config(settings, defaults):
     return conf
 
 
-def _get_database_config(settings, defaults):
+def _get_database_config(settings):
     default = {
-        key: from_env('DEPLOYMENT_DATABASE_{}'.format(key), fail_late=True, defaults=defaults)
+        key: from_env('DEPLOYMENT_DATABASE_{}'.format(key), fail_late=True)
         for key in ['ENGINE', 'NAME', 'USER', 'PASSWORD', 'HOST', 'PORT']
     }
     return {'DATABASES': {'default': default}}
@@ -91,39 +125,14 @@ def get_settings(SETTINGS):
           Readme.md
     """
     SET = {}
-
-    DEFAULTS = {
-        'DEPLOYMENT_ALLOWED_HOSTS': '',
-        'DEPLOYMENT_BASE_URL': 'http://localhost',
-        'DEPLOYMENT_CORS_ORIGIN_WHITELIST': '',
-        'DEPLOYMENT_CSRF_COOKIE_SECURE': True,
-        'DEPLOYMENT_EMAIL_BACKEND': "django.core.mail.backends.console.EmailBackend",
-        'DEPLOYMENT_FRONTEND_URL': 'http://localhost',
-        'DEPLOYMENT_HOST_NAME': 'localhost',
-        'DEPLOYMENT_LOCAL_URL': 'http://localhost',
-        'DEPLOYMENT_SESSION_COOKIE_SECURE': True,
-    }
-
-    ###########################################################################
-    #                        Development defaults                             #
-    ###########################################################################
-    SET['DEBUG'] = SETTINGS.get('DEBUG', str_to_bool(getenv('WAGTAILNEST_DEBUG')))
+    SET.update(DEFAULTS)
+    SET['WAGTAILNEST_DEBUG'] = to_bool(getenv('WAGTAILNEST_DEBUG'))
+    SET['DEBUG'] = SETTINGS.get('DEBUG', SET['WAGTAILNEST_DEBUG'])
     if SET['DEBUG']:
-        DEFAULTS.update({
-            'DEPLOYMENT_ALLOWED_HOSTS': '*',
-            'DEPLOYMENT_BROKER_URL': 'redis://redis',
-            'DEPLOYMENT_CELERY_RESULT_BACKEND': 'redis://redis',
-            'DEPLOYMENT_CORS_ORIGIN_ALLOW_ALL': True,
-            'DEPLOYMENT_CSRF_COOKIE_SECURE': False,
-            'DEPLOYMENT_DATABASE_ENGINE': 'django.contrib.gis.db.backends.postgis',
-            'DEPLOYMENT_DATABASE_NAME': 'django',
-            'DEPLOYMENT_DATABASE_USER': 'django',
-            'DEPLOYMENT_DATABASE_PASSWORD': 'django',
-            'DEPLOYMENT_DATABASE_HOST': 'db',
-            'DEPLOYMENT_DATABASE_PORT': 5432,
-            'DEPLOYMENT_SESSION_COOKIE_SECURE': False,
-        })
-
+        SET.update(DEBUG_DEFAULTS)
+    ###########################################################################
+    #                          Development core                               #
+    ###########################################################################
     SET['SECRET_KEY'] = SETTINGS.get('SECRET_KEY', from_env('DJANGO_SECRET_KEY', fail_late=True))
     WAGTAILNEST = SETTINGS.get('WAGTAILNEST', {})
     SET['APP_ROOT'] = path.abspath(path.dirname(SETTINGS['__file__']))
@@ -254,14 +263,14 @@ def get_settings(SETTINGS):
     SET['ALLOWED_HOSTS'] = [
         'localhost',
     ] + SET['INTERNAL_IPS']
-    env_allowed_hosts = from_env('DEPLOYMENT_ALLOWED_HOSTS', defaults=DEFAULTS)
+    env_allowed_hosts = from_env('DEPLOYMENT_ALLOWED_HOSTS')
     if env_allowed_hosts != '':
         SET['ALLOWED_HOSTS'].extend(env_allowed_hosts.split(','))
 
     SET['EMAIL_SUBJECT_PREFIX'] = '[Django - {}] '.format(SET['PROJECT_NAME'])
-    SET['HOST_NAME'] = from_env('DEPLOYMENT_HOST_NAME', defaults=DEFAULTS)
-    SET.update(_get_email_config(SET, defaults=DEFAULTS))
-    SET.update(_get_database_config(SET, defaults=DEFAULTS))
+    SET['HOST_NAME'] = from_env('DEPLOYMENT_HOST_NAME')
+    SET.update(_get_email_config(SET))
+    SET.update(_get_database_config(SET))
 
     ###########################################################################
     #                          Celery settings                                #
@@ -269,8 +278,8 @@ def get_settings(SETTINGS):
     SET.update({
         'CELERY_APP_NAME': SET['PROJECT_NAME'],
         'BROKER_TRANSPORT_OPTIONS': {'visibility_timeout': 3600},  # 1 hour.
-        'BROKER_URL': from_env('DEPLOYMENT_BROKER_URL', fail_late=True, defaults=DEFAULTS),
-        'CELERY_RESULT_BACKEND': from_env('DEPLOYMENT_CELERY_RESULT_BACKEND', fail_late=True, defaults=DEFAULTS),
+        'BROKER_URL': from_env('DEPLOYMENT_BROKER_URL', fail_late=True),
+        'CELERY_RESULT_BACKEND': from_env('DEPLOYMENT_CELERY_RESULT_BACKEND', fail_late=True),
     })
 
     ###########################################################################
@@ -313,7 +322,7 @@ def get_settings(SETTINGS):
     SET['ACCOUNT_USER_MODEL_USERNAME_FIELD'] = None  # type: str
     SET['ACCOUNT_USERNAME_REQUIRED'] = False
 
-    env_cors_origin = from_env('DEPLOYMENT_CORS_ORIGIN_WHITELIST', defaults=DEFAULTS)
+    env_cors_origin = from_env('DEPLOYMENT_CORS_ORIGIN_WHITELIST')
     if env_cors_origin != '':
         SET['CORS_ORIGIN_WHITELIST'] = env_cors_origin.split(',')
 
@@ -325,17 +334,17 @@ def get_settings(SETTINGS):
     SET['WAGTAIL_USER_CREATION_FORM'] = 'wagtailnest.forms.CustomUserCreationForm'
     SET['SESSION_COOKIE_PATH'] = '/backend/'
     SET['CSRF_COOKIE_PATH'] = '/backend/'
-    SET['SESSION_COOKIE_SECURE'] = str_to_bool(from_env('DEPLOYMENT_SESSION_COOKIE_SECURE', defaults=DEFAULTS))
-    SET['CSRF_COOKIE_SECURE'] = str_to_bool(from_env('DEPLOYMENT_CSRF_COOKIE_SECURE', defaults=DEFAULTS))
+    SET['SESSION_COOKIE_SECURE'] = to_bool(from_env('DEPLOYMENT_SESSION_COOKIE_SECURE'))
+    SET['CSRF_COOKIE_SECURE'] = to_bool(from_env('DEPLOYMENT_CSRF_COOKIE_SECURE'))
     SET['WAGTAIL_SITE_NAME'] = "{} API dashboard".format(SET['PROJECT_NAME'])
 
     ###########################################################################
     #                        Wagtailnest settings                             #
     ###########################################################################
     SET['WAGTAILNEST'] = {
-        'BASE_URL': from_env('DEPLOYMENT_BASE_URL', defaults=DEFAULTS),
-        'FRONTEND_URL': from_env('DEPLOYMENT_FRONTEND_URL', defaults=DEFAULTS),
-        'LOCAL_URL': from_env('DEPLOYMENT_LOCAL_URL', defaults=DEFAULTS),
+        'BASE_URL': from_env('DEPLOYMENT_BASE_URL'),
+        'FRONTEND_URL': from_env('DEPLOYMENT_FRONTEND_URL'),
+        'LOCAL_URL': from_env('DEPLOYMENT_LOCAL_URL'),
         'API_ENDPOINT_DOCS': 'wagtailnest.endpoints.WTNDocumentsAPIEndpoint',
         'API_ENDPOINT_IMAGES': 'wagtailnest.endpoints.WTNImagesAPIEndpoint',
         'API_ENDPOINT_PAGES': 'wagtailnest.endpoints.WTNPagesAPIEndpoint',
@@ -354,14 +363,14 @@ def get_settings(SETTINGS):
     #                        Development settings                             #
     ###########################################################################
     if SET['DEBUG']:
-        SET['INSTALLED_APPS'] += [  # NOQA
+        SET['INSTALLED_APPS'] += [
             'debug_toolbar',
             'debug_toolbar_line_profiler',
             'wagtail.contrib.wagtailstyleguide',
         ]
         SET['MIDDLEWARE'] = [
             'debug_toolbar.middleware.DebugToolbarMiddleware',
-        ] + SET['MIDDLEWARE']  # NOQA
+        ] + SET['MIDDLEWARE']
         SET['DEBUG_TOOLBAR_CONFIG'] = {
             'SHOW_COLLAPSED': True,
             'SHOW_TOOLBAR_CALLBACK': lambda request: True
