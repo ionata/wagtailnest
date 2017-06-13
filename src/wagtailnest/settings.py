@@ -147,11 +147,10 @@ def get_settings(settings, types=None):
     TYPES.update({} if types is None else types)
     env = environ.Env(**TYPES)
     SET = {}
-    SET.update(DEFAULTS)
     SET['WAGTAILNEST_DEBUG'] = to_bool(getenv('WAGTAILNEST_DEBUG'))
     SET['DEBUG'] = settings.get('DEBUG', SET['WAGTAILNEST_DEBUG'])
     if SET['DEBUG']:
-        SET.update(DEBUG_DEFAULTS)
+        DEFAULTS.update(DEBUG_DEFAULTS)
     ###########################################################################
     #                          Development core                               #
     ###########################################################################
