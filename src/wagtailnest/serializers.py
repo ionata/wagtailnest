@@ -10,6 +10,7 @@ from django.db import models
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from enumfields.fields import EnumFieldMixin
+from rest_auth.serializers import LoginSerializer as RALoginSerializer
 from rest_framework import serializers
 from wagtail.api.v2.serializers import PageSerializer
 from wagtail.wagtailcore.models import PageRevision, Site
@@ -122,6 +123,11 @@ class UserPermissionSerializerMixin(serializers.Serializer):
 
     def get_permissions(self, obj):
         return sorted({x for x in obj.get_all_permissions() if self.in_apps(x)})
+
+
+class LoginSerializer(RALoginSerializer):
+    def validate_email(self, value):
+        return value.lower()
 
 
 class PasswordResetSerializer(serializers.Serializer):
