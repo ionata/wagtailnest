@@ -221,6 +221,7 @@ def get_settings(settings, types=None):
         'revproxy',
         'anymail',
         'django_extensions',
+        'django_filters',
 
         # Our apps (last-loaded)
         'wagtailnest.wagtailnest_overrides',
