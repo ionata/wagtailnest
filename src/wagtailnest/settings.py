@@ -366,6 +366,7 @@ def get_settings(settings, types=None):
     SET['WAGTAIL_USER_CREATION_FORM'] = 'wagtailnest.forms.CustomUserCreationForm'
     SET['SESSION_COOKIE_PATH'] = '/backend/'
     SET['CSRF_COOKIE_PATH'] = '/backend/'
+    SET['LOGIN_URL'] = '/backend/login/'
     SET['SESSION_COOKIE_SECURE'] = to_bool(from_env('DEPLOYMENT_SESSION_COOKIE_SECURE'))
     SET['CSRF_COOKIE_SECURE'] = to_bool(from_env('DEPLOYMENT_CSRF_COOKIE_SECURE'))
     SET['WAGTAIL_SITE_NAME'] = "{} API dashboard".format(SET['PROJECT_NAME'])
