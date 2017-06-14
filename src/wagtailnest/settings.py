@@ -352,11 +352,11 @@ def get_settings(settings, types=None):
     env_cors_origin = from_env('DEPLOYMENT_CORS_ORIGIN_WHITELIST')
     if env_cors_origin != '':
         SET['CORS_ORIGIN_WHITELIST'] = env_cors_origin.split(',')
-    env_csrf_origin = from_env('DEPLOYMENT_CSRF_TRUSTED_ORIGINS')
-    if env_csrf_origin != '':
-        SET['CSRF_TRUSTED_ORIGINS'] = env_csrf_origin.split(',')
-    else:
+    env_csrf_origin = getenv('DEPLOYMENT_CSRF_TRUSTED_ORIGINS', None)
+    if env_csrf_origin is None:
         SET['CSRF_TRUSTED_ORIGINS'] = SET['CORS_ORIGIN_WHITELIST']
+    elif env_csrf_origin != '':
+        SET['CSRF_TRUSTED_ORIGINS'] = env_csrf_origin.split(',')
 
     ###########################################################################
     #                          Wagtail settings                               #
