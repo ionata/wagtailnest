@@ -17,6 +17,7 @@ DEFAULTS = deployment_dict({
     'BROKER_URL': 'redis://',
     'CELERY_RESULT_BACKEND': 'redis://',
     'CORS_ORIGIN_WHITELIST': '',
+    'CSRF_TRUSTED_ORIGINS': '',
     'CSRF_COOKIE_SECURE': True,
     'EMAIL_BACKEND': "django.core.mail.backends.console.EmailBackend",
     'FRONTEND_URL': 'http://localhost',
@@ -351,6 +352,11 @@ def get_settings(settings, types=None):
     env_cors_origin = from_env('DEPLOYMENT_CORS_ORIGIN_WHITELIST')
     if env_cors_origin != '':
         SET['CORS_ORIGIN_WHITELIST'] = env_cors_origin.split(',')
+    env_csrf_origin = from_env('DEPLOYMENT_CSRF_TRUSTED_ORIGINS')
+    if env_csrf_origin != '':
+        SET['CSRF_TRUSTED_ORIGINS'] = env_csrf_origin.split(',')
+    else:
+        SET['CSRF_TRUSTED_ORIGINS'] = SET['CORS_ORIGIN_WHITELIST']
 
     ###########################################################################
     #                          Wagtail settings                               #
