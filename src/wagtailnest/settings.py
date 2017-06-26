@@ -327,7 +327,8 @@ def get_settings(settings, types=None):
         'DEFAULT_PAGINATION_CLASS': 'wagtailnest.pagination.ThousandMaxLimitOffsetPagination',
         'DEFAULT_FILTER_BACKENDS': [
             'rest_framework_filters.backends.DjangoFilterBackend',
-        ]
+        ],
+        'DEFAULT_METADATA_CLASS': 'wagtailnest.views.ModelChoicesMetadata',
     }
     SET['SWAGGER_SETTINGS'] = {'api_version': '1'}
 

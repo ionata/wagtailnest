@@ -1,5 +1,6 @@
 from django.utils import timezone
 from rest_framework.fields import ChoiceField, DateTimeField
+from rest_framework.serializers import PrimaryKeyRelatedField
 
 
 class LocalDateTimeField(DateTimeField):
@@ -34,3 +35,16 @@ class RestEnumField(ChoiceField):
         if value is None:
             return None
         return value.value
+
+
+class ModelChoicesFieldMixin():
+    def __init__(self, **kwargs):
+        self.value_attr = kwargs.pop('value_attr', 'id')
+        self.str_attr = kwargs.pop('str_attr', None)
+        self.filtered_queryset = kwargs.pop(
+            'filtered_queryset', kwargs.get('queryset', None))
+        super().__init__(**kwargs)
+
+
+class ModelChoicesPrimaryKeyRelatedField(ModelChoicesFieldMixin, PrimaryKeyRelatedField):
+    pass
