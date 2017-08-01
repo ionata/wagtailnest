@@ -1,4 +1,4 @@
-from typing import List, Type, Tuple
+from typing import List, Tuple
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
 from django.db.models import Model
@@ -13,7 +13,7 @@ class ModelEmail:
     text_template = None  # type: str
     html_template = None  # type: str
     subject_string = None  # type: str
-    serializer_class = None  # type: Type[BaseSerializer]
+    serializer_class = None  # type: BaseSerializer
     instance_email_attr = 'email'
 
     def __init__(self,
@@ -29,7 +29,7 @@ class ModelEmail:
         self.context = None
         self.attachments = [] if attachments is None else attachments
 
-    def get_serializer_class(self) -> Type[BaseSerializer]:
+    def get_serializer_class(self):
         return self.serializer_class
 
     def get_serializer(self, instance: object) -> BaseSerializer:
