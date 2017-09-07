@@ -1,33 +1,20 @@
-from importlib import import_module
 from functools import wraps
 
+from dj_core.utils import as_absolute
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from rest_framework.settings import perform_import
 from wagtail.wagtailcore.blocks import RichTextBlock
 from wagtail.wagtailcore.models import Site, UserPagePermissionsProxy
-from wagtail.wagtailcore.rich_text import LINK_HANDLERS
+from wagtail.wagtailimages.formats import get_image_formats
 
 
 def get_site():
-    try:
-        return Site.objects.get(is_default_site=True)  # pylint: disable=no-member
-    except Site.DoesNotExist:
-        return Site.objects.first()  # pylint: disable=no-member
-
-
-def get_root_url():
-    """
-    Determine the root URL for the site.
-    """
-    site = get_site()
+    site = Site.objects.filter(pk=settings.SITE_ID).first()
     if site is None:
-        return ''
-    return site.root_url
-
-
-def as_absolute(url):
-    return get_root_url() + url
+        site = Site.objects.filter(
+            hostname=settings.DJCORE.CONFIG.site_url.hostname).first()
+    return site or Site.objects.first()
 
 
 def _clean_rel_url(rel_url):
@@ -57,46 +44,21 @@ def can_publish(user, page):
     return page.pk in publishable_pages(user).values_list('pk', flat=True)
 
 
-def get_url_components(url):
-    try:
-        url_parts = url.split('://', 1)
-    except AttributeError:
-        raise ValueError("expected a 'str' object, got a '{}' object".format(url.__class__.__name__))
-    if len(url_parts) < 2:
-        raise ValueError('invalid URL. Must be of form "<protocol>://<domain>:<port>"')
-    protocol, url_parts = url_parts
-    url_parts = url_parts.rsplit(':', 1)
-    hostname = url_parts[0]
-    if protocol == 'http':
-        port = 80
-    elif protocol == 'https':
-        port = 443
-    else:
-        raise ValueError('unexpected protocol ({})'.format(protocol))
-    try:
-        port = int(url_parts[1]) if len(url_parts) > 1 else port
-    except ValueError:
-        raise ValueError("unexpected port value (expected only a number, got '{}')".format(url_parts[1]))
-    return (protocol, hostname, port)
-
-
 def generate_image_url(image, filter_spec):
-    """
-    From an Image, get a URL.
-    """
+    """From an Image, get a URL."""
     from wagtail.wagtailimages.views.serve import generate_signature
     signature = generate_signature(image.id, filter_spec)
     url = reverse('wagtailimages_serve', args=(signature, image.id, filter_spec))
     return as_absolute(url)
 
 
+def get_image_filter_spec(profile_name):
+    profiles = {x.name: x for x in get_image_formats()}
+    return getattr(profiles.get(profile_name, None), 'filter_spec', 'original')
+
+
 def richtext_to_python(value):
-    """
-    Convert a RichText rendered string back into RichText.
-    """
-    from wagtailnest.handlers import DocumentLinkHandler
-    if not isinstance(LINK_HANDLERS.get('document', None), DocumentLinkHandler):
-        LINK_HANDLERS['document'] = DocumentLinkHandler()
+    """Convert a RichText rendered string back into RichText."""
     if isinstance(value, str):
         return str(RichTextBlock().to_python(value))
     return value
@@ -110,21 +72,6 @@ def serialize_video_url(video_url):
 def import_setting(name, default=None):
     value = perform_import(settings.WAGTAILNEST.get(name, None), name)
     return default if value is None else value
-
-
-def import_from_string(value):
-    """
-    Copy of rest_framework.settings.import_from_string
-    Does not require a setting_name for the exception message"""
-    try:
-        # Nod to tastypie's use of importlib.
-        parts = value.split('.')
-        module_path, class_name = '.'.join(parts[:-1]), parts[-1]
-        module = import_module(module_path)
-        return getattr(module, class_name)
-    except (ImportError, AttributeError) as e:
-        raise ImportError(
-            "Could not import '{}'. {}: {}.".format(value, e.__class__.__name__, e))
 
 
 def nonraw_signal_handler(signal_handler):

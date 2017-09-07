@@ -18,17 +18,35 @@
             <section id="account" class="active nice-padding">
                 <ul class="fields">
                     {% block fields %}
-                        {% include "wagtailadmin/shared/field_as_li.html" with field=form.username_field %}
+                        {% if form.separate_username_field %}
+                            {% include "wagtailadmin/shared/field_as_li.html" with field=form.username_field %}
+                        {% endif %}
+                        {% if form.email %}
+                            {% include "wagtailadmin/shared/field_as_li.html" with field=form.email %}
+                        {% endif %}
+                        {% if form.first_name %}
+                            {% include "wagtailadmin/shared/field_as_li.html" with field=form.first_name %}
+                        {% endif %}
+                        {% if form.last_name %}
+                            {% include "wagtailadmin/shared/field_as_li.html" with field=form.last_name %}
+                        {% endif %}
                         {% block extra_fields %}{% endblock extra_fields %}
-                        {% include "wagtailadmin/shared/field_as_li.html" with field=form.password1 %}
-                        {% include "wagtailadmin/shared/field_as_li.html" with field=form.password2 %}
+                        {% if form.password1 %}
+                            {% include "wagtailadmin/shared/field_as_li.html" with field=form.password1 %}
+                        {% endif %}
+                        {% if form.password2 %}
+                            {% include "wagtailadmin/shared/field_as_li.html" with field=form.password2 %}
+                        {% endif %}
                     {% endblock fields %}
 
-                    <li><a href="#roles" class="button lowpriority tab-toggle icon icon-arrow-right-after" />{% trans "Roles" %}</a></li>
+                    <li><a href="#roles" class="button lowpriority tab-toggle icon icon-arrow-right-after">{% trans "Roles" %}</a></li>
                 </ul>
             </section>
             <section id="roles" class="nice-padding">
                 <ul class="fields">
+                    {% if form.is_superuser %}
+                        {% include "wagtailadmin/shared/field_as_li.html" with field=form.is_superuser %}
+                    {% endif %}
                     {% include "wagtailadmin/shared/field_as_li.html" with field=form.groups %}
                     <li><input type="submit" value='{% trans "Add user" %}' class="button" /></li>
                 </ul>

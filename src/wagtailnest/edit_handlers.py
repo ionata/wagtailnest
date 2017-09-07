@@ -3,23 +3,22 @@ from wagtail.contrib.modeladmin.options import ModelAdmin
 from wagtail.wagtailadmin.edit_handlers import ObjectList
 from wagtail.contrib.modeladmin.views import CreateView, EditView
 
+
 class CustomPanelEditViewMixin:
     create_edit_handler = None
     update_edit_handler = None
 
     def get_create_edit_handler(self):
-        handler = self.create_edit_handler
-        if handler is None:
-            message = 'Add a create edit handler or define custom_panels or custom_create_panels'
-            raise NotImplementedError(message)
-        return handler
+        if self.create_edit_handler is not None:
+            return self.create_edit_handler
+        raise NotImplementedError(
+            'Define create_edit_handler, custom_panels, or custom_create_panels')
 
     def get_update_edit_handler(self):
-        handler = self.update_edit_handler
-        if handler is None:
-            message = 'Add an update edit handler or define either custom_panels or custom_update_panels'
-            raise NotImplementedError(message)
-        return handler
+        if self.update_edit_handler is not None:
+            return self.update_edit_handler
+        raise NotImplementedError(
+            'Define update_edit_handler, custom_panels, or custom_update_panels')
 
 
 class CustomPanelCreateView(CreateView, CustomPanelEditViewMixin):
@@ -48,12 +47,16 @@ class CustomPanelModelAdminMixin:
 class CustomPanelModelAdmin(CustomPanelModelAdminMixin, ModelAdmin):
     custom_panels = None
 
+    def _get_edit_handler(self, action):
+        custom_panels_attr = 'custom_{}_panels'.format(action)
+        handler = getattr(self, custom_panels_attr, self.custom_panels)
+        if handler is not None:
+            if isinstance(handler, Iterable):
+                return ObjectList(handler).bind_to_model(self)
+            return handler
+
     def get_create_edit_handler(self):
-        eh = getattr(self, 'custom_create_panels', self.custom_panels)
-        if eh is not None:
-            return ObjectList(eh).bind_to_model(self) if isinstance(eh, Iterable) else eh
+        return self._get_edit_handler('create')
 
     def get_update_edit_handler(self):
-        eh = getattr(self, 'custom_update_panels', self.custom_panels)
-        if eh is not None:
-            return ObjectList(eh).bind_to_model(self) if isinstance(eh, Iterable) else eh
+        return self._get_edit_handler('update')

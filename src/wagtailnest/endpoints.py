@@ -11,7 +11,7 @@ from wagtail.wagtaildocs.api.v2.endpoints import DocumentsAPIEndpoint
 from wagtail.api.v2.utils import (
     BadRequestError, filter_page_type, page_models_from_string)
 
-from .serializers import (
+from wagtailnest.serializers import (
     PageRevisionSerializer, WTNDocumentSerializer, WTNImageSerializer,
     WTNPageSerializer,
 )
@@ -33,9 +33,9 @@ class ExtraAttrsAPIEndpoint:
     typed_attrs = {}
 
     def dispatch(self, request, *args, **kwargs):
-        self.request = request
+        self.request = request  # pylint: disable=attribute-defined-outside-init
         self.apply_page_type_attrs()
-        return super().dispatch(request, *args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)  # pylint: disable=no-member
 
     def get_page_type(self):
         type_name = self.request.GET.get('type', 'wagtailcore.Page')
@@ -45,10 +45,11 @@ class ExtraAttrsAPIEndpoint:
             models = []
         return models[0] if len(models) == 1 else Page
 
-    def _resolve_object_string(self, string):
+    @staticmethod
+    def _resolve_object_string(string):
         try:
             return import_from_string(string, '')
-        except (AttributeError, ImportError, ValueError) as e:
+        except (AttributeError, ImportError, ValueError):
             return string  # If not importable, must be a regular string
 
     def _resolve_page_type_attr_values(self, value):
@@ -72,7 +73,7 @@ class ExtraAttrsAPIEndpoint:
             for name, value in self._resolve_page_type_attrs(model).items():
                 setattr(self, name, value)
 
-    def check_query_parameters(self, queryset):
+    def check_query_parameters(self, queryset):  # pylint: disable=unused-argument,no-self-use
         return  # TODO: Allow only what's on our custom filterset
 
 
@@ -169,7 +170,7 @@ class WTNPagesAPIEndpoint(ExtraAttrsAPIEndpoint, PagesAPIEndpoint):
         self._object = self.get_page_for_url(request)
         if self._object is not None:
             self.kwargs.update({'pk': self._object.pk})
-            self.action = 'detail_view'
+            self.action = 'detail_view'  # pylint: disable=attribute-defined-outside-init
             return self.detail_view(request, pk=self._object.pk)
         return super().listing_view(request)
 
@@ -191,9 +192,10 @@ class WTNPageRevisionsAPIEndpoint(BaseAPIEndpoint):
     def get_queryset(self):
         user = self.request.user
         if user is None or not user.is_authenticated:
-            return PageRevision.objects.none()
+            return PageRevision.objects.none()  # pylint: disable=no-member
         page_ids = publishable_pages(user).values_list('pk', flat=True)
-        qs = PageRevision.objects.filter(page__in=page_ids).order_by('-page', '-created_at')
+        qs = PageRevision.objects.filter(  # pylint: disable=no-member
+            page__in=page_ids).order_by('-page', '-created_at')
         url_path = get_urlpath(self.request)
         if url_path is not None:
             qs = qs.filter(page__url_path=url_path)
