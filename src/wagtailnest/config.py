@@ -26,7 +26,10 @@ class Config(BaseConfig):
     }
 
     def get_installed_apps(self, settings):
-        return super().get_installed_apps(settings) + [
+        apps = super().get_installed_apps(settings)
+        if 'wagtailnest' not in apps:
+            apps = ['wagtailnest'] + apps
+        return apps + [
             'wagtail.wagtailforms',
             'wagtail.wagtailredirects',
             'wagtail.wagtailembeds',
