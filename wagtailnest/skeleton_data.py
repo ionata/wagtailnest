@@ -5,7 +5,7 @@ from wagtailnest.utils import get_site as base_get_site
 
 
 def get_site():
-    url = settings.DJCORE.CONFIG.site_url
+    url = settings.DJCORE.URL
     defaults = {
         'site_name': settings.DJCORE.SITE_NAME,
         'hostname': url.hostname,

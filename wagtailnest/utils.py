@@ -13,7 +13,7 @@ def get_site():
     site = Site.objects.filter(pk=settings.SITE_ID).first()
     if site is None:
         site = Site.objects.filter(
-            hostname=settings.DJCORE.CONFIG.site_url.hostname).first()
+            hostname=settings.DJCORE.URL.hostname).first()
     return site or Site.objects.first()
 
 

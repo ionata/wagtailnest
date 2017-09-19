@@ -1,4 +1,6 @@
 # DEV
+# 0.0.8
+- Fix bug in `skeleton_data` using old settings
 # 0.0.7
 - Update for dj-core 0.0.6
 - Add wagtailnest to apps if not detected by dj-core
