@@ -13,19 +13,19 @@ def _read(filename, as_lines=True):
 
 setup(
     name='wagtailnest',
-    version='0.0.6',
+    version='0.0.7',
     description='A RESTful Wagtail enclosure',
     long_description=_read('README.md', as_lines=False),
     author='Ionata Digital',
     author_email='webmaster@ionata.com.au',
     url='https://github.com/ionata/wagtailnest',
-    packages=find_packages('src'),
+    packages=find_packages(),
+    include_package_data=True,
     install_requires=_read('requirements-production.txt'),
     extras_require={
         'defaults': _read('requirements-defaults.txt'),
     },
-    package_dir={'': 'src'},
-    include_package_data=True,
+    python_requires='>=3.5',
     classifiers=[
         'Environment :: Web Environment',
         'Framework :: Django',

@@ -1,4 +1,7 @@
 # DEV
+# 0.0.7
+- Update for dj-core 0.0.6
+- Add wagtailnest to apps if not detected by dj-core
 # 0.0.6
 - Add .pyup.yml
 - Update user forms for wagtail 1.12
