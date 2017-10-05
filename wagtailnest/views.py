@@ -55,6 +55,7 @@ class ImageServeView(RetrieveAPIView):
     def get(self, request, *args, **kwargs):  # pylint: disable=no-self-use
         pk = kwargs.pop('pk', None)
         if pk is not None:
+            request.GET = request.GET.copy()  # QueryDict is immutable
             filter_spec = get_image_filter_spec(request.GET.pop('filter_spec', None))
             signature = generate_signature(pk, filter_spec).decode('utf-8')
             args = (signature, pk, filter_spec)

@@ -1,4 +1,5 @@
 # DEV
+- Fix bug in Image endpoint modifying immutable data
 # 0.0.8
 - Fix bug in `skeleton_data` using old settings
 # 0.0.7
