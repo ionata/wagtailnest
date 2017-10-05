@@ -1,2 +1,2 @@
-dj-core[defaults]==0.0.6
+dj-core[defaults]==0.0.10
 werkzeug  # pyup: ignore
