@@ -1,4 +1,6 @@
 # DEV
+# 0.0.10
+- Fix bug when getting values from QueryDict
 # 0.0.9
 - Update for dj-core-drf 0.0.6
 - Fix bug in Image endpoint modifying immutable data

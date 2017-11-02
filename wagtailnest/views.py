@@ -56,7 +56,9 @@ class ImageServeView(RetrieveAPIView):
         pk = kwargs.pop('pk', None)
         if pk is not None:
             request.GET = request.GET.copy()  # QueryDict is immutable
-            filter_spec = get_image_filter_spec(request.GET.pop('filter_spec', None))
+            filter_spec = get_image_filter_spec(
+                request.GET.get('filter_spec', None))
+            request.GET.pop('filter_spec', None)
             signature = generate_signature(pk, filter_spec).decode('utf-8')
             args = (signature, pk, filter_spec)
         return ServeView.as_view()(request, *args)
