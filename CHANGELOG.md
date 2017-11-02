@@ -1,5 +1,7 @@
 # DEV
 # 0.0.10
+- Use dj-core-drf's 'defaults' extras install option
+- Update for dj-core-drf 0.0.7
 - Fix bug when getting values from QueryDict
 # 0.0.9
 - Update for dj-core-drf 0.0.6
