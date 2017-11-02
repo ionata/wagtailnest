@@ -1,4 +1,5 @@
 # DEV
+# 0.0.9
 - Fix bug when getting values from QueryDict
 - Fix bug in Image endpoint modifying immutable data
 # 0.0.8
