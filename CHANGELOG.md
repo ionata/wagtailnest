@@ -1,4 +1,5 @@
 # DEV
+- Revert to using dj-core['defaults'] in defaults
 # 0.0.10
 - Use dj-core-drf's 'defaults' extras install option
 - Update for dj-core-drf 0.0.7
