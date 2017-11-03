@@ -1,4 +1,5 @@
 # DEV
+- Update for dj-core-drf 0.0.8
 # 0.0.11
 - Revert to using dj-core['defaults'] in defaults
 # 0.0.10
