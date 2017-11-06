@@ -1,4 +1,5 @@
 # DEV
+- Move endpoint settings into API_ENDPOINTS dict (backwards incompatible change)
 - Update for dj-core-drf 0.0.8
 # 0.0.11
 - Revert to using dj-core['defaults'] in defaults

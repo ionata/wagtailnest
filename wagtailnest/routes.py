@@ -17,9 +17,9 @@ def _wt_router():
         ('images', 'IMAGES'),
         ('documents', 'DOCS'),
     ]
+    endpoints = settings.WAGTAILNEST.API_ENDPOINTS
     for route, name in routes:
-        name = 'API_ENDPOINT_' + name
-        endpoint = import_from_string(settings.WAGTAILNEST[name], name)
+        endpoint = import_from_string(endpoints[name], name)
         router.register_endpoint(route, endpoint)
     return router
 
