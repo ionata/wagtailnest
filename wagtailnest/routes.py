@@ -6,8 +6,6 @@ from wagtail.api.v2.router import WagtailAPIRouter
 from wagtail.wagtailadmin import urls as wagtailadmin_urls
 from wagtail.wagtailcore import urls as wagtailcore_urls
 
-import wagtailnest.views as wtn
-
 
 def _wt_router():
     router = WagtailAPIRouter('wagtailapi')
@@ -27,25 +25,36 @@ def _wt_router():
 wt_router = _wt_router()
 
 
+views = settings.WAGTAILNEST.VIEWS
+
+
 def _serve_views():
     return [
         url(r'^documents/(\d+)/(.*)$',
-            wtn.DocumentServeView.as_view(), name='wagtaildocs_serve'),
+            import_from_string(views.DOCS_SERVE, 'DOCS_SERVE').as_view(),
+            name='wagtaildocs_serve'),
         url(r'^images/(?P<pk>\d+)/$',
-            wtn.ImageServeView.as_view(), name='wagtailimages_serve_easy'),
+            import_from_string(views.IMAGES_SERVE, 'IMAGES_SERVE').as_view(),
+            name='wagtailimages_serve_easy'),
         url(r'^images/([^/]*)/(\d*)/([^/]*)/[^/]*$',
-            wtn.ImageServeView.as_view(), name='wagtailimages_serve'),
+            import_from_string(views.IMAGES_SERVE, 'IMAGES_SERVE').as_view(),
+            name='wagtailimages_serve'),
         url(wagtailcore_urls.serve_pattern,
-            wtn.PageServeView.as_view(), name='wagtail_serve'),
+            import_from_string(views.PAGES_SERVE, 'PAGES_SERVE').as_view(),
+            name='wagtail_serve'),
     ]
 
 
 def _frontend_redirects():
     return [
         url(r'^(?P<pk>\d+)/view_draft/$',
-            wtn.DraftRedirectView.as_view(), name='view_draft'),
+            import_from_string(
+                views.DRAFT_REDIRECT, 'DRAFT_REDIRECT').as_view(),
+            name='view_draft'),
         url(r'^(?P<pk>\d+)/revisions/(?P<rpk>\d+)/view/$',
-            wtn.RevisionRedirectView.as_view(), name='revisions_view'),
+            import_from_string(
+                views.REVISION_REDIRECT, 'REVISION_REDIRECT').as_view(),
+            name='revisions_view'),
     ]
 
 
