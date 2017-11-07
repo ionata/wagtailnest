@@ -1,4 +1,5 @@
 # DEV
+- Update for django 1.11.7
 - Make serve and redirect views configurable
 - Move endpoint settings into API_ENDPOINTS dict (backwards incompatible change)
 - Update for dj-core-drf 0.0.8
