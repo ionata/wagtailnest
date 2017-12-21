@@ -9,7 +9,7 @@ def get_site():
     defaults = {
         'site_name': settings.DJCORE.SITE_NAME,
         'hostname': url.hostname,
-        'port': url.port or '443' if url.scheme == 'https' else '80'
+        'port': url.port or ('443' if url.scheme == 'https' else '80')
     }
     site = base_get_site()
     if site is None:

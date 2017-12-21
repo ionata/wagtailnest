@@ -1,4 +1,5 @@
 # DEV
+- Fix port configuration in setup_skeletons
 - Update MANIFEST to re-include templates
 # 0.0.12
 - Update for django 1.11.7
