@@ -1,4 +1,5 @@
 # DEV
+- Update MANIFEST to re-include templates
 # 0.0.12
 - Update for django 1.11.7
 - Make serve and redirect views configurable
