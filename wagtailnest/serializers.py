@@ -4,13 +4,12 @@ from django.core.exceptions import MultipleObjectsReturned
 from rest_framework import serializers
 from wagtail.api.v2.serializers import PageSerializer
 from wagtail.wagtailcore.models import PageRevision, Site
+from wagtail.wagtaildocs.api.v2.serializers import DocumentSerializer
 from wagtail.wagtailembeds.embeds import get_embed
 from wagtail.wagtailembeds.models import Embed
 from wagtail.wagtailimages.api.v2.serializers import ImageSerializer
-from wagtail.wagtaildocs.api.v2.serializers import DocumentSerializer
-
+from wagtail.wagtailredirects.models import Redirect
 from wagtailnest.utils import get_root_relative_url
-
 
 User = get_user_model()
 
@@ -44,6 +43,12 @@ class WTNImageSerializer(ModelSerializer, ImageSerializer):
 
 class WTNDocumentSerializer(ModelSerializer, DocumentSerializer):
     pass
+
+
+class RedirectSerializer(ModelSerializer):
+    class Meta:
+        model = Redirect
+        exclude = []
 
 
 class SiteSerializer(ModelSerializer):

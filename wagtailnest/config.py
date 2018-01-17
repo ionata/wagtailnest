@@ -18,6 +18,7 @@ class Config(BaseConfig):
         ('WAGTAILNEST__API_ENDPOINTS__IMAGES', 'wagtailnest.endpoints.WTNImagesAPIEndpoint'),
         ('WAGTAILNEST__API_ENDPOINTS__PAGES', 'wagtailnest.endpoints.WTNPagesAPIEndpoint'),
         ('WAGTAILNEST__API_ENDPOINTS__PAGE_REVS', 'wagtailnest.endpoints.WTNPageRevisionsAPIEndpoint'),
+        ('WAGTAILNEST__API_ENDPOINTS__REDIRECTS', 'wagtailnest.endpoints.WTNRedirectsAPIEndpoint'),
         ('WAGTAILNEST__API_USER_PERMISSION_APPS', []),
         ('WAGTAILNEST__DOCUMENT_PERMISSION_CLASSES', None),
         ('WAGTAILNEST__IMAGE_PERMISSION_CLASSES', None),

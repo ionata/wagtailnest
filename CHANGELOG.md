@@ -1,4 +1,5 @@
 # DEV
+- Adds redirects to wagtail API
 - Update requirements
 - Fix port configuration in setup_skeletons
 - Update MANIFEST to re-include templates

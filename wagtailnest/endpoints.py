@@ -5,18 +5,16 @@ from rest_framework.response import Response
 from rest_framework.settings import import_from_string
 from wagtail.api.v2.endpoints import BaseAPIEndpoint, PagesAPIEndpoint
 from wagtail.api.v2.filters import FieldsFilter, OrderingFilter, SearchFilter
+from wagtail.api.v2.utils import (BadRequestError, filter_page_type,
+                                  page_models_from_string)
 from wagtail.wagtailcore.models import Page, PageRevision
-from wagtail.wagtailimages.api.v2.endpoints import ImagesAPIEndpoint
 from wagtail.wagtaildocs.api.v2.endpoints import DocumentsAPIEndpoint
-from wagtail.api.v2.utils import (
-    BadRequestError, filter_page_type, page_models_from_string)
-
-from wagtailnest.serializers import (
-    PageRevisionSerializer, WTNDocumentSerializer, WTNImageSerializer,
-    WTNPageSerializer,
-)
-from wagtailnest.utils import (
-    _clean_rel_url, get_url_path, publishable_pages)
+from wagtail.wagtailimages.api.v2.endpoints import ImagesAPIEndpoint
+from wagtail.wagtailredirects.models import Redirect
+from wagtailnest.serializers import (PageRevisionSerializer,
+                                     RedirectSerializer, WTNDocumentSerializer,
+                                     WTNImageSerializer, WTNPageSerializer)
+from wagtailnest.utils import _clean_rel_url, get_url_path, publishable_pages
 
 
 def get_urlpath(request):
@@ -210,3 +208,14 @@ class WTNDocumentsAPIEndpoint(DocumentsAPIEndpoint):
     base_serializer_class = WTNDocumentSerializer
     meta_fields = BaseAPIEndpoint.meta_fields + ['tags', 'download_url', 'filename']
     nested_default_fields = BaseAPIEndpoint.nested_default_fields + ['title', 'download_url', 'filename']
+
+
+class WTNRedirectsAPIEndpoint(BaseAPIEndpoint):
+    base_serializer_class = RedirectSerializer
+    filter_backends = [FieldsFilter, OrderingFilter, SearchFilter]
+    body_fields = BaseAPIEndpoint.body_fields + ['site', 'old_path', 'is_permanent', 'redirect_page', 'redirect_link']
+    meta_fields = []
+    listing_default_fields = body_fields
+    nested_default_fields = body_fields
+    name = 'redirects'
+    model = Redirect

@@ -12,6 +12,7 @@ def _wt_router():
     routes = [
         ('pages', 'PAGES'),
         ('page_revisions', 'PAGE_REVS'),
+        ('redirects', 'REDIRECTS'),
         ('images', 'IMAGES'),
         ('documents', 'DOCS'),
     ]
