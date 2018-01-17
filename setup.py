@@ -13,7 +13,7 @@ def _read(filename, as_lines=True):
 
 setup(
     name='wagtailnest',
-    version='0.0.12',
+    version='0.1.0',
     description='A RESTful Wagtail enclosure',
     long_description=_read('README.md', as_lines=False),
     author='Ionata Digital',
