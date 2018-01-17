@@ -1,4 +1,5 @@
 # DEV
+- Update requirements
 - Fix port configuration in setup_skeletons
 - Update MANIFEST to re-include templates
 # 0.0.12

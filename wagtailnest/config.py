@@ -24,6 +24,7 @@ class Config(BaseConfig):
         ('WAGTAILNEST__PAGE_PERMISSION_CLASSES', None),
     ])
     defaults.INSTALLED_APPS_REQUIRED = [
+        'dj_core_drf',
         'wagtailnest',
         'wagtail.wagtailforms',
         'wagtail.wagtailredirects',
@@ -41,7 +42,7 @@ class Config(BaseConfig):
         'taggit',
         'wagtail.contrib.modeladmin',
         'wagtail.contrib.settings',
-    ] + defaults.INSTALLED_APPS_REQUIRED
+    ] + defaults.INSTALLED_APPS_REQUIRED[1:]
 
     def get_middleware(self, settings):
         return super().get_middleware(settings) + [
