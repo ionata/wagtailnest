@@ -1,7 +1,0 @@
-requirements:
-  - requirements-defaults.txt:
-      update: all
-      pin: True
-  - requirements-production.txt:
-      update: all
-      pin: True

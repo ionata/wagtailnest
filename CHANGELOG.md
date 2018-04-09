@@ -1,4 +1,5 @@
 # DEV
+- Remove pyup
 # 0.1.0
 - Adds redirects to wagtail API
 - Update requirements
