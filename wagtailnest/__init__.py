@@ -1,5 +1,5 @@
-from pkg_resources import get_distribution
+"""A RESTful Wagtail enclosure"""
 
+__version__ = '0.2.0'
 
-__version__ = get_distribution('wagtailnest').version
 default_app_config = 'wagtailnest.apps.WagtailnestConfig'
