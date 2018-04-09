@@ -1,5 +1,6 @@
 # DEV
 # 0.2.0
+- Move to wagtail 2.0
 - Move to pipenv + setup.cfg (until pip10+flit)
 - Remove pyup
 # 0.1.0

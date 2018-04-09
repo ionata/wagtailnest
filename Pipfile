@@ -4,11 +4,24 @@ url = "https://pypi.python.org/simple"
 name = "pypi"
 
 [packages]
-"e1839a8" = {extras = ["defaults"], editable = true, path = "."}
+"e1839a8" = {editable = true, path = "."}
+dj-core-drf = "*"
 
 [dev-packages]
 twine = "*"
 piprot = "*"
+mypy = "*"
+python-language-server = "*"
+pyls-mypy = "*"
+pyls-isort = "*"
+yapf = "*"
+pycodestyle = "*"
+pydocstyle = "*"
+pylint = "*"
+pylint-django = "*"
+werkzeug = "*"
+ipython = "*"
+ptpython = "*"
 
 [requires]
 python_version = "3.6"
