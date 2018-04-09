@@ -1,6 +1,6 @@
 from collections import Iterable
 from wagtail.contrib.modeladmin.options import ModelAdmin
-from wagtail.wagtailadmin.edit_handlers import ObjectList
+from wagtail.admin.edit_handlers import ObjectList
 from wagtail.contrib.modeladmin.views import CreateView, EditView
 
 
@@ -8,17 +8,17 @@ class CustomPanelEditViewMixin:
     create_edit_handler = None
     update_edit_handler = None
 
+    _override = 'Define {0}_edit_handler, custom_panels, or custom_{0}_panels'
+
     def get_create_edit_handler(self):
         if self.create_edit_handler is not None:
             return self.create_edit_handler
-        raise NotImplementedError(
-            'Define create_edit_handler, custom_panels, or custom_create_panels')
+        raise NotImplementedError(self._override.format('create'))
 
     def get_update_edit_handler(self):
         if self.update_edit_handler is not None:
             return self.update_edit_handler
-        raise NotImplementedError(
-            'Define update_edit_handler, custom_panels, or custom_update_panels')
+        raise NotImplementedError(self._override.format('update'))
 
 
 class CustomPanelCreateView(CreateView, CustomPanelEditViewMixin):
@@ -50,10 +50,9 @@ class CustomPanelModelAdmin(CustomPanelModelAdminMixin, ModelAdmin):
     def _get_edit_handler(self, action):
         custom_panels_attr = 'custom_{}_panels'.format(action)
         handler = getattr(self, custom_panels_attr, self.custom_panels)
-        if handler is not None:
-            if isinstance(handler, Iterable):
-                return ObjectList(handler).bind_to_model(self)
-            return handler
+        if isinstance(handler, Iterable):
+            return ObjectList(handler).bind_to_model(self)
+        return handler
 
     def get_create_edit_handler(self):
         return self._get_edit_handler('create')

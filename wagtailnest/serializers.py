@@ -3,12 +3,13 @@ from django.contrib.auth import get_user_model
 from django.core.exceptions import MultipleObjectsReturned
 from rest_framework import serializers
 from wagtail.api.v2.serializers import PageSerializer
-from wagtail.wagtailcore.models import PageRevision, Site
-from wagtail.wagtaildocs.api.v2.serializers import DocumentSerializer
-from wagtail.wagtailembeds.embeds import get_embed
-from wagtail.wagtailembeds.models import Embed
-from wagtail.wagtailimages.api.v2.serializers import ImageSerializer
-from wagtail.wagtailredirects.models import Redirect
+from wagtail.contrib.redirects.models import Redirect
+from wagtail.core.models import PageRevision, Site
+from wagtail.documents.api.v2.serializers import DocumentSerializer
+from wagtail.embeds.embeds import get_embed
+from wagtail.embeds.models import Embed
+from wagtail.images.api.v2.serializers import ImageSerializer
+
 from wagtailnest.utils import get_root_relative_url
 
 User = get_user_model()
@@ -48,19 +49,19 @@ class WTNDocumentSerializer(ModelSerializer, DocumentSerializer):
 class RedirectSerializer(ModelSerializer):
     class Meta:
         model = Redirect
-        exclude = []
+        exclude = []  # type: list
 
 
 class SiteSerializer(ModelSerializer):
     class Meta:
         model = Site
-        exclude = []  # type: List[str]
+        exclude = []  # type: list
 
 
 class EmbedSerializer(ModelSerializer):
     class Meta:
         model = Embed
-        exclude = []  # type: List[str]
+        exclude = []  # type: list
 
     @classmethod
     def for_url(cls, url):

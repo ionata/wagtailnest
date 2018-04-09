@@ -2,11 +2,11 @@ from functools import wraps
 
 from dj_core.utils import as_absolute
 from django.conf import settings
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from rest_framework.settings import perform_import
-from wagtail.wagtailcore.blocks import RichTextBlock
-from wagtail.wagtailcore.models import Site, UserPagePermissionsProxy
-from wagtail.wagtailimages.formats import get_image_formats
+from wagtail.core.blocks import RichTextBlock
+from wagtail.core.models import Site, UserPagePermissionsProxy
+from wagtail.images.formats import get_image_formats
 
 
 def get_site():
@@ -46,9 +46,10 @@ def can_publish(user, page):
 
 def generate_image_url(image, filter_spec):
     """From an Image, get a URL."""
-    from wagtail.wagtailimages.views.serve import generate_signature
+    from wagtail.images.views.serve import generate_signature
     signature = generate_signature(image.id, filter_spec)
-    url = reverse('wagtailimages_serve', args=(signature, image.id, filter_spec))
+    name = 'wagtailimages_serve'
+    url = reverse(name, args=(signature, image.id, filter_spec))
     return as_absolute(url)
 
 

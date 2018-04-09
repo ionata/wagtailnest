@@ -1,11 +1,13 @@
 from django.utils.html import escape
-from wagtail.wagtailimages.formats import Format as BaseFormat
-from wagtail.wagtailimages.shortcuts import get_rendition_or_not_found
+from wagtail.images.formats import Format as BaseFormat
+from wagtail.images.shortcuts import get_rendition_or_not_found
 
 from wagtailnest.utils import generate_image_url
 
 
 class Format(BaseFormat):
+    """Extension to Format which gives an absolute URI."""
+
     # Override to get the CMS API URL instead of a relative one
     def image_to_html(self, image, alt_text, extra_attributes=''):
         rendition = get_rendition_or_not_found(image, self.filter_spec)

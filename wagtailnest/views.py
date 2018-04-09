@@ -1,14 +1,13 @@
 from django.views.generic.base import RedirectView
 from rest_framework.generics import RetrieveAPIView
 from rest_framework.settings import api_settings
-from wagtail.wagtailcore.models import Page
-from wagtail.wagtailcore.views import serve as serve_page
-from wagtail.wagtaildocs.views.serve import serve as serve_doc
-from wagtail.wagtailimages.views.serve import ServeView, generate_signature
+from wagtail.core.models import Page
+from wagtail.core.views import serve as serve_page
+from wagtail.documents.views.serve import serve as serve_doc
+from wagtail.images.views.serve import ServeView, generate_signature
 
-from wagtailnest.utils import (
-    get_root_relative_url, import_setting, get_image_filter_spec)
-
+from wagtailnest.utils import (get_image_filter_spec, get_root_relative_url,
+                               import_setting)
 
 _permissions = {
     name: import_setting(
@@ -19,14 +18,20 @@ _permissions = {
 
 
 class DraftRedirectView(RedirectView):
-    def get_redirect_url(self, *args, **kwargs):  # pylint: disable=unused-argument
+    """View that redirects to the correct URL for a draft."""
+
+    # pylint: disable=unused-argument
+    def get_redirect_url(self, *args, **kwargs):
         page = Page.objects.filter(pk=self.kwargs.get('pk', None)).first()
         url_path = '/' if page is None else page.specific.url_path
         return '{}?preview=True'.format(get_root_relative_url(url_path))
 
 
 class RevisionRedirectView(RedirectView):
-    def get_redirect_url(self, *args, **kwargs):  # pylint: disable=unused-argument
+    """View that redirects to the correct URL for a revision."""
+
+    # pylint: disable=unused-argument
+    def get_redirect_url(self, *args, **kwargs):
         page = Page.objects.filter(pk=self.kwargs.get('pk', None)).first()
         url_path = '/' if page is None else page.specific.url_path
         rpk = self.kwargs.get('rpk', '')
@@ -34,6 +39,8 @@ class RevisionRedirectView(RedirectView):
 
 
 class PageServeView(RetrieveAPIView):
+    """View which serves a rendered page."""
+
     permission_classes = _permissions['PAGE']
 
     # pylint: disable=no-self-use,arguments-differ
@@ -42,6 +49,8 @@ class PageServeView(RetrieveAPIView):
 
 
 class DocumentServeView(RetrieveAPIView):
+    """View which serves a document."""
+
     permission_classes = _permissions['DOCUMENT']
 
     # pylint: disable=no-self-use,arguments-differ
@@ -50,6 +59,8 @@ class DocumentServeView(RetrieveAPIView):
 
 
 class ImageServeView(RetrieveAPIView):
+    """View which serves an image."""
+
     permission_classes = _permissions['IMAGE']
 
     def get(self, request, *args, **kwargs):  # pylint: disable=no-self-use

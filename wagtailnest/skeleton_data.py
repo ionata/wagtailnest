@@ -1,5 +1,5 @@
 from django.conf import settings
-from wagtail.wagtailcore.models import Page, Site
+from wagtail.core.models import Page, Site
 
 from wagtailnest.utils import get_site as base_get_site
 

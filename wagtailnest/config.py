@@ -27,17 +27,17 @@ class Config(BaseConfig):
     defaults.INSTALLED_APPS_REQUIRED = [
         'dj_core_drf',
         'wagtailnest',
-        'wagtail.wagtailforms',
-        'wagtail.wagtailredirects',
-        'wagtail.wagtailembeds',
-        'wagtail.wagtailsites',
-        'wagtail.wagtailusers',
-        'wagtail.wagtailsnippets',
-        'wagtail.wagtaildocs',
-        'wagtail.wagtailimages',
-        'wagtail.wagtailsearch',
-        'wagtail.wagtailadmin',
-        'wagtail.wagtailcore',
+        'wagtail.contrib.forms',
+        'wagtail.contrib.redirects',
+        'wagtail.embeds',
+        'wagtail.sites',
+        'wagtail.users',
+        'wagtail.snippets',
+        'wagtail.documents',
+        'wagtail.images',
+        'wagtail.search',
+        'wagtail.admin',
+        'wagtail.core',
         'wagtail.api.v2',
         'modelcluster',
         'taggit',
@@ -47,6 +47,6 @@ class Config(BaseConfig):
 
     def get_middleware(self, settings):
         return super().get_middleware(settings) + [
-            'wagtail.wagtailcore.middleware.SiteMiddleware',
-            'wagtail.wagtailredirects.middleware.RedirectMiddleware',
+            'wagtail.core.middleware.SiteMiddleware',
+            'wagtail.contrib.redirects.middleware.RedirectMiddleware',
         ]

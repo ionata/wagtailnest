@@ -7,10 +7,11 @@ from wagtail.api.v2.endpoints import BaseAPIEndpoint, PagesAPIEndpoint
 from wagtail.api.v2.filters import FieldsFilter, OrderingFilter, SearchFilter
 from wagtail.api.v2.utils import (BadRequestError, filter_page_type,
                                   page_models_from_string)
-from wagtail.wagtailcore.models import Page, PageRevision
-from wagtail.wagtaildocs.api.v2.endpoints import DocumentsAPIEndpoint
-from wagtail.wagtailimages.api.v2.endpoints import ImagesAPIEndpoint
-from wagtail.wagtailredirects.models import Redirect
+from wagtail.contrib.redirects.models import Redirect
+from wagtail.core.models import Page, PageRevision
+from wagtail.documents.api.v2.endpoints import DocumentsAPIEndpoint
+from wagtail.images.api.v2.endpoints import ImagesAPIEndpoint
+
 from wagtailnest.serializers import (PageRevisionSerializer,
                                      RedirectSerializer, WTNDocumentSerializer,
                                      WTNImageSerializer, WTNPageSerializer)
@@ -28,12 +29,14 @@ def get_urlpath(request):
 
 
 class ExtraAttrsAPIEndpoint:
-    typed_attrs = {}
+    typed_attrs = {}  # type: dict
 
     def dispatch(self, request, *args, **kwargs):
-        self.request = request  # pylint: disable=attribute-defined-outside-init
+        # pylint: disable=attribute-defined-outside-init
+        self.request = request
         self.apply_page_type_attrs()
-        return super().dispatch(request, *args, **kwargs)  # pylint: disable=no-member
+        # pylint: disable=no-member
+        return super().dispatch(request, *args, **kwargs)
 
     def get_page_type(self):
         type_name = self.request.GET.get('type', 'wagtailcore.Page')
@@ -58,8 +61,8 @@ class ExtraAttrsAPIEndpoint:
         return value
 
     def _resolve_page_type_attrs(self, model):
-        model_str = getattr(getattr(model, '_meta', None), 'label', None)
-        options = self.typed_attrs.get(model, self.typed_attrs.get(model_str, {}))
+        label = getattr(getattr(model, '_meta', None), 'label', None)
+        options = self.typed_attrs.get(model, self.typed_attrs.get(label, {}))
         return {
             name: self._resolve_page_type_attr_values(value)
             for name, value in options.items()
@@ -71,7 +74,8 @@ class ExtraAttrsAPIEndpoint:
             for name, value in self._resolve_page_type_attrs(model).items():
                 setattr(self, name, value)
 
-    def check_query_parameters(self, queryset):  # pylint: disable=unused-argument,no-self-use
+    # pylint: disable=unused-argument,no-self-use
+    def check_query_parameters(self, queryset):
         return  # TODO: Allow only what's on our custom filterset
 
 
@@ -97,30 +101,30 @@ class WTNPagesAPIEndpoint(ExtraAttrsAPIEndpoint, PagesAPIEndpoint):
         self._object = None
 
     def get_queryset(self):
-        """Override to allow non-live pages to be seen for preview/revisions."""
+        """Override to allow non-live pages for preview/revisions."""
         request = self.request
         # Allow pages to be filtered to a specific type
+        page_type = request.GET.get('type', 'wagtailcore.Page')
         try:
-            models = page_models_from_string(request.GET.get('type', 'wagtailcore.Page'))
+            models = page_models_from_string(page_type)
         except (LookupError, ValueError):
             raise BadRequestError("type doesn't exist")
         if not models:
             models = [Page]
         if len(models) == 1:
-            queryset = models[0].objects.all()
+            qs = models[0].objects.all()
         else:
-            queryset = Page.objects.all()
+            qs = Page.objects.all()
             # Filter pages by specified models
-            queryset = filter_page_type(queryset, models)
+            qs = filter_page_type(qs, models)
         if self.revision_wanted is not None or self.is_preview:
             # Get pages that the current user has permission to publish
-            queryset = publishable_pages(self.user, queryset)
+            qs = publishable_pages(self.user, qs)
         else:
             # Get live pages that are not in a private section
-            queryset = queryset.live().public()
+            qs = qs.live().public()
         # Filter by site
-        queryset = queryset.descendant_of(request.site.root_page, inclusive=True)
-        return queryset
+        return qs.descendant_of(request.site.root_page, inclusive=True)
 
     def get_object(self):
         if self._object is None:
@@ -160,7 +164,8 @@ class WTNPagesAPIEndpoint(ExtraAttrsAPIEndpoint, PagesAPIEndpoint):
         return Response(serializer.data)
 
     def get_page_for_url(self, request):
-        page = self.get_queryset().filter(url_path=get_urlpath(request)).first()
+        path = get_urlpath(request)
+        page = self.get_queryset().filter(url_path=path).first()
         return page.specific if page is not None else None
 
     def listing_view(self, request):
@@ -168,7 +173,8 @@ class WTNPagesAPIEndpoint(ExtraAttrsAPIEndpoint, PagesAPIEndpoint):
         self._object = self.get_page_for_url(request)
         if self._object is not None:
             self.kwargs.update({'pk': self._object.pk})
-            self.action = 'detail_view'  # pylint: disable=attribute-defined-outside-init
+            # pylint: disable=attribute-defined-outside-init
+            self.action = 'detail_view'
             return self.detail_view(request, pk=self._object.pk)
         return super().listing_view(request)
 
@@ -181,7 +187,7 @@ class WTNPageRevisionsAPIEndpoint(BaseAPIEndpoint):
         'url_path',
     ])
     body_fields = ['id', 'created_at', 'page', 'user']
-    meta_fields = []  # type: List[str]
+    meta_fields = []  # type: list
     listing_default_fields = ['id', 'created_at', 'page', 'user']
     nested_default_fields = ['id', 'created_at', 'page', 'user']
     name = 'page_revisions'
@@ -206,15 +212,21 @@ class WTNImagesAPIEndpoint(ImagesAPIEndpoint):
 
 class WTNDocumentsAPIEndpoint(DocumentsAPIEndpoint):
     base_serializer_class = WTNDocumentSerializer
-    meta_fields = BaseAPIEndpoint.meta_fields + ['tags', 'download_url', 'filename']
-    nested_default_fields = BaseAPIEndpoint.nested_default_fields + ['title', 'download_url', 'filename']
+    meta_fields = BaseAPIEndpoint.meta_fields + [
+        'tags', 'download_url', 'filename'
+    ]
+    nested_default_fields = BaseAPIEndpoint.nested_default_fields + [
+        'title', 'download_url', 'filename'
+    ]
 
 
 class WTNRedirectsAPIEndpoint(BaseAPIEndpoint):
     base_serializer_class = RedirectSerializer
     filter_backends = [FieldsFilter, OrderingFilter, SearchFilter]
-    body_fields = BaseAPIEndpoint.body_fields + ['site', 'old_path', 'is_permanent', 'redirect_page', 'redirect_link']
-    meta_fields = []
+    body_fields = BaseAPIEndpoint.body_fields + [
+        'site', 'old_path', 'is_permanent', 'redirect_page', 'redirect_link'
+    ]
+    meta_fields = []  # type: list
     listing_default_fields = body_fields
     nested_default_fields = body_fields
     name = 'redirects'

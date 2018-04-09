@@ -3,8 +3,8 @@ from django.conf import settings
 from django.conf.urls import include, url
 from rest_framework.settings import import_from_string
 from wagtail.api.v2.router import WagtailAPIRouter
-from wagtail.wagtailadmin import urls as wagtailadmin_urls
-from wagtail.wagtailcore import urls as wagtailcore_urls
+from wagtail.admin import urls as wagtailadmin_urls
+from wagtail.core import urls as wagtailcore_urls
 
 
 def _wt_router():
@@ -62,7 +62,7 @@ def _frontend_redirects():
 urlpatterns = [
     url(r'^backend/', include([
         url(r'^api/v1/', include([
-            url(r'', include(wt_router.urls)),
+            url(r'', wt_router.urls),
             url(r'^cms/', include(_serve_views())),
         ])),
         url(r'^pages/', include(_frontend_redirects())),

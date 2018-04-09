@@ -1,4 +1,4 @@
-from wagtail.wagtailusers.forms import UserEditForm, UserCreationForm, custom_fields
+from wagtail.users.forms import UserEditForm, UserCreationForm, custom_fields
 
 
 class ExtraneousFieldRemovalMixin:
