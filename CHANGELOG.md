@@ -1,4 +1,5 @@
 # DEV
+# 0.2.1
 - Stop trying to decode a `str` object
 # 0.2.0
 - Move to wagtail 2.0
