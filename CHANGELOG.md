@@ -1,4 +1,5 @@
 # DEV
+- Stop trying to decode a `str` object
 # 0.2.0
 - Move to wagtail 2.0
 - Move to pipenv + setup.cfg (until pip10+flit)
