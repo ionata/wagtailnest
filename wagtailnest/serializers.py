@@ -32,6 +32,8 @@ class PageRevisionSerializer(ModelSerializer):
 
 
 class WTNPageSerializer(ModelSerializer, PageSerializer):
+    serializer_field_mapping = PageSerializer.serializer_field_mapping.copy()
+    serializer_field_mapping.update(ModelSerializer.serializer_field_mapping)
     root_relative_url = serializers.SerializerMethodField()
 
     def get_root_relative_url(self, instance):  # pylint: disable=no-self-use

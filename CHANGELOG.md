@@ -1,4 +1,5 @@
 # DEV
+- Fix WTNPageSerializer.serializer_field_mapping bug
 - Update changed SHA256 for pluggy in Pipfile.lock
 # 0.2.1
 - Stop trying to decode a `str` object
